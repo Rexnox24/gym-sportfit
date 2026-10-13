@@ -1,24 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
-export const Route = createFileRoute("/")({
-  component: Index,
-});
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { ArrowUpRight, ArrowDown, Dumbbell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { EquipmentGallery } from '@/components/equipment-gallery';
+import { photos, pageHead } from '@/lib/gym-data';
+export const Route=createFileRoute('/')({head:()=>pageHead('Gym Sportfit · Fuerza sin límites','Descubre Gym Sportfit: equipamiento de fuerza, instalaciones reales y tu portal privado de miembros.'),component:Home});
+function Home(){return <main><section className="hero"><img className="hero-image" src={photos[0]} alt="Máquinas y área de fuerza de Gym Sportfit con iluminación neón" fetchPriority="high"/><div className="shell hero-content motion-enter"><div className="eyebrow">NO ES SOLO UN GIMNASIO. ES TU SIGUIENTE NIVEL.</div><h1>GYM SPORTFIT.<br/>TU FUERZA.<br/><span>SIN LÍMITES.</span></h1><p className="hero-copy">Aquí se entrena con intención. Un espacio para darlo todo, desafiar tus límites y construir tu mejor versión.</p><div className="hero-actions"><Button asChild variant="sport" size="xl"><Link to="/auth">EMPIEZA TU CAMBIO <ArrowUpRight/></Link></Button><Button asChild variant="heroOutline" size="xl"><Link to="/equipamiento"><Dumbbell/> EXPLORA EL GYM</Link></Button></div></div><div className="hero-bottom"><div className="shell"><div className="hero-note"><strong>ENTRENA FUERTE. SUPÉRATE SIEMPRE.</strong>EL CAMBIO EMPIEZA CONTIGO.</div><div className="hero-note flex items-center gap-3"><ArrowDown className="size-4 text-primary"/> DESCUBRE SPORTFIT</div><div className="image-index">01 <span>/ SPORTFIT</span></div></div></div></section><div className="ticker" aria-hidden="true"><span>FUERZA</span><i>✦</i><span>DISCIPLINA</span><i>✦</i><span>EVOLUCIÓN</span><i>✦</i><span>GYM SPORTFIT</span><i>✦</i><span>SIN LÍMITES</span><i>✦</i><span>FUERZA</span></div><section className="section shell"><div className="section-top"><div><div className="eyebrow">EL ESPACIO DONDE TE SUPERAS</div><h2>EQUIPADO PARA MÁS.</h2><p className="section-text">Cada repetición cuenta. Encuentra tu zona y conoce el equipo que acompañará tu siguiente reto.</p></div><Button asChild variant="link" className="text-[11px]"><Link to="/equipamiento">TODO EL EQUIPAMIENTO <ArrowUpRight/></Link></Button></div><EquipmentGallery preview/></section><section className="join-band"><div className="shell"><div><h2>TU SIGUIENTE REPETICIÓN EMPIEZA AQUÍ.</h2><p>Forma parte de Gym Sportfit.</p></div><Button asChild variant="sport" size="xl"><Link to="/auth">ÚNETE A SPORTFIT <ArrowUpRight/></Link></Button></div></section></main>;}

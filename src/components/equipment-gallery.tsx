@@ -1,0 +1,11 @@
+import { useState, type MouseEvent } from 'react';
+import { ArrowUpRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { equipment } from '@/lib/gym-data';
+export function EquipmentGallery({preview=false}:{preview?:boolean}){
+ const [filter,setFilter]=useState('Todo'); const [selected,setSelected]=useState<(typeof equipment)[number]|null>(null);
+ const items=preview?equipment.slice(0,3):equipment.filter(e=>filter==='Todo'||e.category===filter);
+ function tilt(e:MouseEvent<HTMLElement>){if(!window.matchMedia('(hover:hover) and (prefers-reduced-motion:no-preference)').matches)return;const b=e.currentTarget.getBoundingClientRect();e.currentTarget.style.transform=`rotateX(${-(e.clientY-b.y-b.height/2)/45}deg) rotateY(${(e.clientX-b.x-b.width/2)/45}deg)`;}
+ return <>{!preview&&<div className="filter-row" aria-label="Filtrar equipamiento">{['Todo','Fuerza','Máquinas','Instalaciones'].map(f=><Button key={f} variant={filter===f?'default':'outline'} aria-pressed={filter===f} onClick={()=>setFilter(f)}>{f}</Button>)}</div>}<div className="equipment-grid">{items.map((e,i)=><article key={e.name} className="equipment-card" onMouseMove={tilt} onMouseLeave={e=>{e.currentTarget.style.transform='';}}><div className="equipment-photo"><img src={e.image} alt={e.name+' en Gym Sportfit'} loading="lazy"/></div><span className="card-number">0{i+1}</span><div className="equipment-body"><div><span className="category">{e.category.toUpperCase()}</span><h3>{e.name}</h3></div><Button variant="outline" size="icon" aria-label={'Explorar '+e.name} title={'Explorar '+e.name} onClick={()=>setSelected(e)}><ArrowUpRight/></Button></div></article>)}</div><Dialog open={!!selected} onOpenChange={open=>{if(!open)setSelected(null);}}><DialogContent className="overflow-hidden p-0 sm:max-w-xl">{selected&&<><img className="detail-img" src={selected.image} alt={selected.name}/><div className="p-7"><span className="category">{selected.category}</span><DialogTitle className="mt-3 font-display text-4xl">{selected.name}</DialogTitle><DialogDescription className="mt-4 leading-relaxed">{selected.description}</DialogDescription><p className="mt-5 text-xs text-primary">{selected.muscles}</p></div></>}</DialogContent></Dialog></>;
+}

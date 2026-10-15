@@ -14,3 +14,4 @@
 - Read and update member profiles through authenticated server functions and owner-scoped RLS; grant members updates only to their display name to protect membership and payment status.
 - Keep all visual tokens and reusable layout styles in `src/styles.css`, and use shared Button variants for actions to maintain consistent branding.
 - Store user gym photos as asset pointers; keep the edited logo as an imported image and derive the favicon from it to preserve the official identity.
+- Keep public rates, promotions, amenities and opening hours in `src/lib/gym-data.ts`; pages share this content so commercial updates stay consistent without granting member editing privileges.

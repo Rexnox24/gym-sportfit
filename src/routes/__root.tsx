@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { SiteHeader, SiteFooter } from '@/components/site-shell';
 import { Toaster } from '@/components/ui/sonner';
 import { Button } from '@/components/ui/button';
+import { brandFontLinks } from '@/lib/brand-fonts';
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -95,7 +96,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
-      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Montserrat:wght@400;500;600;700;800&display=swap' },
+      ...brandFontLinks,
     ],
   }),
   shellComponent: RootShell,

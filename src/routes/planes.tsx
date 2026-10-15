@@ -1,22 +1,31 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowUpRight, Banknote, CreditCard, Clock3 } from 'lucide-react';
+import { ArrowUpRight, Check, Clock3, ShieldCheck, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { pageHead, rates, openingHours, amenities } from '@/lib/gym-data';
+import { PaypalButton } from '@/components/paypal-button';
+import { pageHead, openingHours, amenities } from '@/lib/gym-data';
+import { plans, isPlanAvailable } from '@/lib/plans';
 
 export const Route = createFileRoute('/planes')({
- head: () => pageHead('Planes y precios', 'Consulta las tarifas de Gym Sportfit: mensualidad $350, semanal $150, visita $70 y trimestral $780, métodos de pago y horarios.'),
+ head: () => pageHead('Planes y precios', 'Elige tu plan en Gym Sportfit y paga al instante con PayPal: visita $70, semanal $150, mensualidad $350, trimestral $780 y promoción de fin de año.'),
  component: Plans,
 });
 
 function Plans() {
+ const available = plans.filter(p => isPlanAvailable(p));
  return <main className="shell">
-  <div className="page-title"><div className="eyebrow">INVIERTE EN TI</div><h1>ELIGE TU SIGUIENTE NIVEL.</h1><p>Tu entrenamiento, a tu ritmo. Tarifas de Gym Sportfit.</p></div>
-  <section className="rates-section" aria-label="Tarifas">
-   <div className="rates-grid">{rates.map(rate => <article className="rate-card" key={rate.name}><span className="category">{rate.period}</span><h2>{rate.name}</h2><p className="rate-price"><span>$</span>{rate.price}</p></article>)}</div>
-   <div className="rates-note"><p>Conoce también nuestras promociones.</p><Button asChild variant="link"><Link to="/promociones">VER PROMOCIONES <ArrowUpRight/></Link></Button></div>
+  <div className="page-title"><div className="eyebrow">INVIERTE EN TI</div><h1>ELIGE TU <span className="text-primary">SIGUIENTE NIVEL.</span></h1><p>Paga en línea y empieza a entrenar hoy mismo.</p></div>
+  <section className="rates-section" aria-label="Planes y precios">
+   <div className="plans-grid">{available.map(plan => <article key={plan.id} className={'plan-card' + (plan.highlight ? ' is-featured' : '') + (plan.id === 'promo-fin-2026' ? ' is-promo' : '')}>
+    {plan.highlight && <span className="plan-badge">{plan.highlight}</span>}
+    <span className="category">{plan.period.toUpperCase()}</span>
+    <h2>{plan.name}</h2>
+    <p className="plan-price"><span>$</span>{plan.price}<small>MXN</small></p>
+    <ul className="plan-features">{plan.features.map(f => <li key={f}><Check aria-hidden="true" />{f}</li>)}</ul>
+    <div className="plan-pay"><PaypalButton planId={plan.id} /></div>
+   </article>)}</div>
+   <div className="payment-strip"><p><Zap aria-hidden="true" />Pago inmediato con PayPal: tarjeta de crédito, débito o saldo PayPal.</p><p><ShieldCheck aria-hidden="true" />Tu membresía se activa al instante en tu portal.</p><Button asChild variant="link"><Link to="/promociones">VER PROMOCIONES <ArrowUpRight /></Link></Button></div>
   </section>
-  <section className="information-section" aria-labelledby="payment-title"><div><div className="eyebrow">FORMAS DE PAGO</div><h2 id="payment-title">PAGA A TU MANERA.</h2></div><div className="payment-options"><p><Banknote aria-hidden="true"/>Efectivo</p><p><CreditCard aria-hidden="true"/>Transferencia a tarjeta</p><p className="section-text">Solicita el número de tarjeta directamente en el gimnasio para realizar tu transferencia.</p></div></section>
   <section className="information-section" aria-labelledby="services-title"><div><div className="eyebrow">TU ESPACIO DE ENTRENAMIENTO</div><h2 id="services-title">TODO EN SPORTFIT.</h2></div><ul className="amenities-list">{amenities.map(item => <li key={item}>{item}</li>)}</ul></section>
-  <section className="information-section" aria-labelledby="hours-title"><div><div className="eyebrow"><Clock3 aria-hidden="true"/> NUESTROS HORARIOS</div><h2 id="hours-title">ENCUENTRA TU MOMENTO.</h2></div><div className="hours-list">{openingHours.map(day => <div className="hours-day" key={day.days}><h3>{day.days}</h3>{day.sessions.map(session => <p key={session.time}>{session.label && <span>{session.label}</span>}<strong>{session.time}</strong></p>)}</div>)}</div></section>
+  <section className="information-section" aria-labelledby="hours-title"><div><div className="eyebrow"><Clock3 aria-hidden="true" /> NUESTROS HORARIOS</div><h2 id="hours-title">ENCUENTRA TU MOMENTO.</h2></div><div className="hours-list">{openingHours.map(day => <div className="hours-day" key={day.days}><h3>{day.days}</h3>{day.sessions.map(session => <p key={session.time}>{session.label && <span>{session.label}</span>}<strong>{session.time}</strong></p>)}</div>)}</div></section>
  </main>;
 }

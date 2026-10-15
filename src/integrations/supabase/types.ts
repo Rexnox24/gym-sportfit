@@ -14,12 +14,70 @@ export type Database = {
   }
   public: {
     Tables: {
+      expiry_notices: {
+        Row: {
+          expires_at: string
+          id: string
+          kind: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          expires_at: string
+          id?: string
+          kind: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          expires_at?: string
+          id?: string
+          kind?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          paypal_order_id: string
+          plan: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          paypal_order_id: string
+          plan: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          paypal_order_id?: string
+          plan?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           display_name: string
           id: string
           membership: string | null
+          membership_expires_at: string | null
           payment_status: string
         }
         Insert: {
@@ -27,6 +85,7 @@ export type Database = {
           display_name?: string
           id: string
           membership?: string | null
+          membership_expires_at?: string | null
           payment_status?: string
         }
         Update: {
@@ -34,6 +93,7 @@ export type Database = {
           display_name?: string
           id?: string
           membership?: string | null
+          membership_expires_at?: string | null
           payment_status?: string
         }
         Relationships: []

@@ -52,3 +52,4 @@ button,a {touch-action:manipulation;} a {text-decoration:none;} button {cursor:p
 @media(max-width:768px){.equipment-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.portal-grid{grid-template-columns:1fr!important;}}
 @media(max-width:560px){.equipment-grid{grid-template-columns:1fr;}.hero h1{font-size:58px;}.hero{min-height:640px;}.hero-content{padding-top:140px;}.hero-actions{flex-direction:column;align-items:stretch;}.page-title h1{font-size:44px;}.section{padding-block:56px;}.section h2{font-size:36px;}.section-top,.join-band .shell,.footer .shell{flex-direction:column;align-items:flex-start;}.plan-price{font-size:60px;}.renew-box{padding:22px;}.renew-box h2{font-size:30px;}.ticker{font-size:16px;}}
 @media(max-width:390px){.shell{padding-inline:16px;}.hero h1{font-size:48px;}.page-title h1{font-size:38px;}}
+html,body{overflow-x:clip;}

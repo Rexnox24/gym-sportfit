@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as EquipamientoRouteImport } from './routes/equipamiento'
 import { Route as PlanesRouteImport } from './routes/planes'
+import { Route as PromocionesRouteImport } from './routes/promociones'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 
@@ -41,6 +42,11 @@ const PlanesRoute = PlanesRouteImport.update({
   path: '/planes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PromocionesRoute = PromocionesRouteImport.update({
+  id: '/promociones',
+  path: '/promociones',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/equipamiento': typeof EquipamientoRoute
   '/planes': typeof PlanesRoute
+  '/promociones': typeof PromocionesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/portal': typeof AuthenticatedPortalRoute
 }
@@ -65,6 +72,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/equipamiento': typeof EquipamientoRoute
   '/planes': typeof PlanesRoute
+  '/promociones': typeof PromocionesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/portal': typeof AuthenticatedPortalRoute
 }
@@ -75,16 +83,29 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/equipamiento': typeof EquipamientoRoute
   '/planes': typeof PlanesRoute
+  '/promociones': typeof PromocionesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/equipamiento' | '/planes' | '/reset-password' | '/portal'
+    | '/'
+    | '/auth'
+    | '/equipamiento'
+    | '/planes'
+    | '/promociones'
+    | '/reset-password'
+    | '/portal'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/auth' | '/equipamiento' | '/planes' | '/reset-password' | '/portal'
+    | '/'
+    | '/auth'
+    | '/equipamiento'
+    | '/planes'
+    | '/promociones'
+    | '/reset-password'
+    | '/portal'
   id:
     | '__root__'
     | '/'
@@ -92,6 +113,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/equipamiento'
     | '/planes'
+    | '/promociones'
     | '/reset-password'
     | '/_authenticated/portal'
   fileRoutesById: FileRoutesById
@@ -102,6 +124,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   EquipamientoRoute: typeof EquipamientoRoute
   PlanesRoute: typeof PlanesRoute
+  PromocionesRoute: typeof PromocionesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
@@ -142,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlanesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/promociones': {
+      id: '/promociones'
+      path: '/promociones'
+      fullPath: '/promociones'
+      preLoaderRoute: typeof PromocionesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -176,6 +206,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   EquipamientoRoute: EquipamientoRoute,
   PlanesRoute: PlanesRoute,
+  PromocionesRoute: PromocionesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport

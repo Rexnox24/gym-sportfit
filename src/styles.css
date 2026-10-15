@@ -78,7 +78,7 @@ html,body{overflow-x:clip;}
  .hero{height:auto;min-height:0;max-height:none;}
  .hero-content{padding-top:var(--space-hero-top);padding-bottom:var(--space-hero-bottom);}
  .hero h1{font-size:var(--type-hero-compact);line-height:1;}
- .hero-bottom{position:relative;bottom:auto;padding-bottom:var(--space-hero-note);}
+ .hero-bottom{display:none;}
  .hero-actions{flex-direction:column;align-items:stretch;}
  .hero-actions a{padding-block:var(--space-social-gap);}
  .hero .eyebrow{letter-spacing:0;line-height:1.6;}.hero .eyebrow:before{flex:none;}

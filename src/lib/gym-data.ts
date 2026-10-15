@@ -1,17 +1,17 @@
-import a1 from '@/assets/photography/gym-1-final.jpg';
-import a2 from '@/assets/photography/gym-2-final.jpg';
-import a3 from '@/assets/photography/gym-3-final.jpg';
-import a4 from '@/assets/photography/gym-4-final.jpg';
+import a1 from '@/assets/photography/gym-1-piso-uniforme.jpg';
+import a2 from '@/assets/photography/gym-2-piso-uniforme.jpg';
+import a3 from '@/assets/photography/gym-3-piso-uniforme.jpg';
+import a4 from '@/assets/photography/gym-4-piso-uniforme.jpg';
 import a5 from '@/assets/photography/gym-5-retocada.jpg';
 import a6 from '@/assets/photography/gym-6-retocada.jpg';
 import a7 from '@/assets/photography/gym-7-retocada.jpg';
-import a8 from '@/assets/photography/gym-8-retocada.jpg';
+import a8 from '@/assets/photography/gym-8-piso-uniforme.jpg';
 import a9 from '@/assets/photography/gym-9-retocada.jpg';
-import legPress from '@/assets/photography/prensa-piernas-final.jpg';
-import squat from '@/assets/photography/sentadilla-guiada-retocada.jpg';
-import smith from '@/assets/photography/maquina-smith-final.jpg';
+import legPress from '@/assets/photography/prensa-piernas-piso-uniforme.jpg';
+import squat from '@/assets/photography/sentadilla-guiada-piso-uniforme.jpg';
+import smith from '@/assets/photography/maquina-smith-piso-uniforme.jpg';
 import calves from '@/assets/photography/elevacion-talones-final.jpg';
-import promotionPoster from '@/assets/photography/promocion-fin-2026-retocada.jpg';
+import promotionPoster from '@/assets/photography/promocion-fin-2026-piso-uniforme.jpg';
 export const rates = [
  {name:'Mensualidad',price:350,period:'Un mes'},
  {name:'Semanal',price:150,period:'Una semana'},

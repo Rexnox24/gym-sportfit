@@ -1,4 +1,7 @@
 # Gym Sportfit
+- [ ] Corregir los pisos diferentes usando las losetas de Estaciones de poleas como referencia.
+- [ ] Incorporar Instagram, Facebook y TikTok en el pie y menú móvil; probar los enlaces.
+- [ ] Corregir elementos encimados y comprobar celular, tablet, laptop y PC.
 - [x] Logo, diseño, galería, planes, acceso, portal, tarifas, promociones, horarios.
 - [ ] Verificar perfil autenticado y recuperación por correo: espera una cuenta confirmada.
 - [x] Fotos: piso de un solo color como en "Estaciones de poleas".

@@ -1,6 +1,6 @@
 # Design Tokens
 
-Token reference for **GymSportFit**. Use utility classes and CSS variables — never raw values.
+Token reference for **Apex Gym Vibe**. Use utility classes and CSS variables — never raw values.
 
 ## Colors
 
@@ -26,23 +26,6 @@ Typography classes (`font-*` for families, `text-*` for sizes):
 |---|---|
 | `font-sans` | `--font-sans` |
 | `font-display` | `--font-display` |
-| — | `--type-hero-compact` |
-| — | `--type-hero-short` |
-
-## Spacing
-
-Apply with any spacing utility: `p-<name>`, `m-<name>`, `gap-<name>`, `space-<name>`, `w-<name>`, `h-<name>`, etc.
-
-| Name | CSS variable |
-|---|---|
-| `touch` | `--space-touch` |
-| `social-gap` | `--space-social-gap` |
-| `menu` | `--space-menu` |
-| `hero-top` | `--space-hero-top` |
-| `hero-bottom` | `--space-hero-bottom` |
-| `hero-note` | `--space-hero-note` |
-| `hero-short-top` | `--space-hero-short-top` |
-| `hero-short-bottom` | `--space-hero-short-bottom` |
 
 ## Border Radius
 

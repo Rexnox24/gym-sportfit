@@ -8,3 +8,5 @@
 - [x] Incorporar cuatro fotos de máquinas y el cartel de promoción.
 - [x] Publicar las tarifas proporcionadas, servicios, métodos de pago y horarios en las páginas.
 - [x] Añadir página de promociones y comprobar navegación, imágenes y tarifas en móvil y ordenador.
+- [ ] Retocar con IA todas las fotos y el fondo del cartel: piso sin desgaste, pintura renovada y mayor nitidez.
+- [ ] Incorporar las versiones retocadas y verificar su carga en las páginas.

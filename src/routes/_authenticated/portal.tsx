@@ -1,17 +1,30 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { queryOptions, useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
-import { Save, LogOut, ShieldCheck } from 'lucide-react';
+import { Save, LogOut, ShieldCheck, BellRing } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { PaypalButton } from '@/components/paypal-button';
 import { getProfile, updateProfile } from '@/lib/profile.functions';
 import { supabase } from '@/integrations/supabase/client';
 import { pageHead } from '@/lib/gym-data';
+import { plans, isPlanAvailable, daysUntil, type PlanId } from '@/lib/plans';
 const options=queryOptions({queryKey:['member-profile'],queryFn:()=>getProfile()});
-export const Route=createFileRoute('/_authenticated/portal')({head:()=>pageHead('Mi perfil','Tu perfil privado de Gym Sportfit: nombre, membresía y estado de pago.'),loader:({context})=>context.queryClient.ensureQueryData(options),component:Portal,pendingComponent:()=> <div className="shell section">Cargando tu perfil…</div>});
-function Portal(){const {data}=useSuspenseQuery(options);const [name,setName]=useState(data.display_name);const [busy,setBusy]=useState(false);const client=useQueryClient();const navigate=useNavigate();
+export const Route=createFileRoute('/_authenticated/portal')({head:()=>pageHead('Mi perfil','Tu perfil privado de Gym Sportfit: membresía, vencimiento y pago con PayPal.'),loader:({context})=>context.queryClient.ensureQueryData(options),component:Portal,pendingComponent:()=> <div className="shell section">Cargando tu perfil…</div>});
+const fmt=(d:string)=>new Date(d).toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+function Portal(){const {data}=useSuspenseQuery(options);const [name,setName]=useState(data.display_name);const [busy,setBusy]=useState(false);const [planId,setPlanId]=useState<PlanId>('mensualidad');const client=useQueryClient();const navigate=useNavigate();
  async function save(e:FormEvent){e.preventDefault();setBusy(true);try{await updateProfile({data:{display_name:name}});await client.invalidateQueries({queryKey:['member-profile']});toast.success('Nombre actualizado');}catch(e){toast.error(e instanceof Error?e.message:'No pudimos guardar tu nombre');}finally{setBusy(false);}}
  async function logout(){await client.cancelQueries();client.clear();await supabase.auth.signOut();await navigate({to:'/auth',replace:true});}
- const states:Record<string,string>={unrecorded:'Sin registrar',paid:'Al día',pending:'Pendiente',overdue:'Vencido'};
- return <main className="shell"><div className="page-title"><div className="eyebrow">PORTAL DE MIEMBROS</div><h1>HOLA, {data.display_name.split(' ')[0]||'SPORTFIT'}.</h1><p>Tu camino. Tu cuenta.</p></div><div className="portal-grid"><form className="form-stack" onSubmit={save}><label className="field">Nombre<input required maxLength={100} value={name} onChange={e=>setName(e.target.value)}/></label><label className="field">Correo electrónico<input readOnly value={data.email}/></label><div className="flex flex-wrap gap-3"><Button type="submit" disabled={busy}><Save/>{busy?'Guardando…':'Guardar nombre'}</Button><Button type="button" variant="outline" onClick={logout}><LogOut/>Cerrar sesión</Button></div></form><div className="profile-stats"><div className="profile-stat"><span className="category">TU MEMBRESÍA</span><h3>{data.membership||'Sin membresía asignada'}</h3><p className="section-text">La membresía se confirma directamente con Gym Sportfit.</p></div><div className="profile-stat"><span className="category">ESTADO DE PAGO</span><h3>{states[data.payment_status]}</h3><p className="section-text">Crear una cuenta no activa una membresía ni registra un pago.</p></div><p className="text-xs text-muted-foreground flex gap-2 items-center"><ShieldCheck className="size-4"/>Tu información es privada.</p></div></div></main>;
+ const days=daysUntil(data.membership_expires_at);
+ const active=days!==null&&days>=0;
+ const status=active?'Al día':days!==null?'Vencido':'Sin pago registrado';
+ const alert=days===null?null:days<0?{tone:'is-expired',text:`Tu membresía venció el ${fmt(data.membership_expires_at!)}. Renueva para seguir entrenando.`}:days===0?{tone:'is-today',text:'Tu membresía vence HOY. Renuévala para no perder tu acceso.'}:days<=3?{tone:'is-soon',text:`Tu membresía vence en ${days} ${days===1?'día':'días'} (${fmt(data.membership_expires_at!)}).`}:null;
+ return <main className="shell"><div className="page-title"><div className="eyebrow">PORTAL DE MIEMBROS</div><h1>HOLA, {data.display_name.split(' ')[0]||'SPORTFIT'}.</h1><p>Tu camino. Tu cuenta.</p></div>
+  {alert&&<div role="alert" className={'expiry-alert '+alert.tone}><BellRing aria-hidden="true"/><p>{alert.text}</p><a href="#renovar" className="expiry-link">RENOVAR AHORA</a></div>}
+  <div className="portal-grid"><form className="form-stack" onSubmit={save}><label className="field">Nombre<input required maxLength={100} value={name} onChange={e=>setName(e.target.value)}/></label><label className="field">Correo electrónico<input readOnly value={data.email}/></label><div className="flex flex-wrap gap-3"><Button type="submit" disabled={busy}><Save/>{busy?'Guardando…':'Guardar nombre'}</Button><Button type="button" variant="outline" onClick={logout}><LogOut/>Cerrar sesión</Button></div></form>
+  <div className="profile-stats"><div className="profile-stat"><span className="category">TU MEMBRESÍA</span><h3>{active?data.membership:'Sin membresía activa'}</h3><p className="section-text">{data.membership_expires_at?`${active?'Vence':'Venció'} el ${fmt(data.membership_expires_at)}.`:'Elige un plan y paga con PayPal para activarla.'}</p></div><div className="profile-stat"><span className="category">ESTADO DE PAGO</span><h3>{status}</h3><p className="section-text">Los pagos se realizan únicamente en línea con PayPal.</p></div><p className="text-xs text-muted-foreground flex gap-2 items-center"><ShieldCheck className="size-4"/>Tu información es privada.</p></div></div>
+  <section id="renovar" className="renew-box" aria-labelledby="renew-title"><div className="eyebrow">PAGO INMEDIATO</div><h2 id="renew-title">{active?'RENUEVA O AMPLÍA TU PLAN.':'ACTIVA TU MEMBRESÍA.'}</h2><p className="section-text">Si ya tienes un plan activo, el nuevo se suma después de tu fecha de vencimiento.</p>
+   <div className="renew-options" role="radiogroup" aria-label="Elige tu plan">{plans.filter(p=>isPlanAvailable(p)).map(p=><button type="button" role="radio" aria-checked={planId===p.id} key={p.id} className={'renew-option'+(planId===p.id?' is-active':'')} onClick={()=>setPlanId(p.id)}><span>{p.name}</span><strong>${p.price}</strong></button>)}</div>
+   <div className="renew-pay"><PaypalButton key={planId} planId={planId}/></div></section>
+ </main>;
 }

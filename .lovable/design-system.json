@@ -236,12 +236,32 @@
     {
       "name": "SiteHeader",
       "file": "src/components/site-shell",
-      "import_path": ""
+      "import_path": "",
+      "usage": "Use for shared public navigation with member access and labeled social links in the mobile menu.",
+      "examples": [
+        {
+          "label": "Shared navigation",
+          "code": "<SiteHeader signedIn={false} />"
+        }
+      ],
+      "antipatterns": [
+        "Do not force desktop navigation into tablet widths."
+      ]
     },
     {
       "name": "SiteFooter",
       "file": "src/components/site-shell",
-      "import_path": ""
+      "import_path": "",
+      "usage": "Use once at the bottom of each page for shared navigation and official social destinations.",
+      "examples": [
+        {
+          "label": "Shared navigation",
+          "code": "<SiteFooter />"
+        }
+      ],
+      "antipatterns": [
+        "Do not replace official social links with placeholder destinations."
+      ]
     },
     {
       "name": "Button",
@@ -336,6 +356,33 @@
       "name": "Constants",
       "file": "src/integrations/supabase/types",
       "import_path": ""
+    },
+    {
+      "name": "SocialLinks",
+      "file": "src/components/social-links",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": [
+            "icons",
+            "labeled"
+          ],
+          "default": "icons"
+        }
+      ],
+      "usage": "Use official social icons in footers; use the labeled variant in mobile navigation. Links open in another tab.",
+      "examples": [
+        {
+          "label": "Shared navigation",
+          "code": "<SocialLinks variant=\"labeled\" aria-label=\"Redes sociales\" />"
+        }
+      ],
+      "antipatterns": [
+        "Do not use social buttons to trigger internal navigation.",
+        "Do not replace the provided destination URLs."
+      ]
     }
   ],
   "assets": [

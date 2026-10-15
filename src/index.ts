@@ -1,5 +1,7 @@
 export { EquipmentGallery } from "./components/equipment-gallery"
 export { SiteHeader, SiteFooter } from "./components/site-shell"
+export { SocialLinks } from "./components/social-links"
+export type { SocialLinksProps } from "./components/social-links"
 export { Button } from "./components/ui/button"
 export { Dialog, DialogPortal, DialogOverlay, DialogTrigger, DialogClose, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "./components/ui/dialog"
 export { Constants } from "./integrations/supabase/types"

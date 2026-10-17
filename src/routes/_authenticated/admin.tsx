@@ -67,9 +67,7 @@ function Admin() {
   catch (e) { toast.error(e instanceof Error ? e.message : 'Algo salió mal'); return false; }
  }
  function addDays(r: (typeof rows)[number], days: number) {
-  const base = r.membership_expires_at && new Date(r.membership_expires_at) > new Date() ? new Date(r.membership_expires_at) : new Date();
-  base.setDate(base.getDate() + days);
-  run(setFn({ data: { userId: r.id, membership: r.membership || 'Mensualidad', expiresAt: base.toISOString() } }), `Se sumaron ${days} días a ${r.display_name || r.email}`);
+  run(setFn({ data: { userId: r.id, membership: r.membership || 'Mensualidad', expiresAt: plusDays(r.membership_expires_at, days) } }), `Se sumaron ${days} días a ${r.display_name || r.email}`);
  }
  async function askAi(e: FormEvent) {
   e.preventDefault(); if (ask.trim().length < 2) return;
@@ -120,7 +118,7 @@ function Admin() {
      <div className="admin-plan"><span className="category">{r.membership || '—'}</span><span className={'admin-status ' + tone}>{label}</span></div>
      <div className="admin-actions">
       <Button size="sm" variant="sport" onClick={() => setEditing(r.id)}><Pencil />Editar</Button>
-      <Button size="sm" variant="outline" onClick={() => addDays(r, 30)}><CalendarPlus />+30 días</Button>
+      <Button size="sm" variant="outline" onClick={() => setDaysFor(r.id)}><CalendarPlus />+30 días</Button>
       <Button size="sm" variant="outline" onClick={() => setCashFor(r.id)}><Banknote />Pago en efectivo</Button>
       <Button size="sm" variant="outline" onClick={() => run(updFn({ data: { userId: r.id, displayName: r.display_name, membership: r.membership, expiresAt: r.membership_expires_at ? new Date(r.membership_expires_at).toISOString() : null, active: !r.account_active, paymentStatus: r.payment_status as PayStatus } }), r.account_active ? 'Cuenta desactivada' : 'Cuenta reactivada')}><Power />{r.account_active ? 'Desactivar' : 'Activar'}</Button>
       <Button size="sm" variant="destructive" onClick={() => { if (confirm('¿Dar de baja definitiva y eliminar la cuenta de este cliente? No se puede deshacer.')) run(delFn({ data: { userId: r.id } }), 'Cliente dado de baja'); }}><Trash2 />Baja definitiva</Button>
@@ -135,6 +133,9 @@ function Admin() {
   </Dialog>
   <Dialog open={showLogs} onOpenChange={setShowLogs}>
    <DialogContent className="max-h-[85vh] overflow-y-auto">{showLogs && <Logs names={new Map(rows.map((r) => [r.id, r.display_name || r.email]))} />}</DialogContent>
+  </Dialog>
+  <Dialog open={!!daysFor} onOpenChange={(o) => !o && setDaysFor(null)}>
+   <DialogContent>{daysFor && <ConfirmDays member={rows.find((r) => r.id === daysFor)!} onCancel={() => setDaysFor(null)} onConfirm={() => { const m = rows.find((r) => r.id === daysFor)!; setDaysFor(null); addDays(m, 30); }} />}</DialogContent>
   </Dialog>
  </main>;
 }
@@ -201,4 +202,23 @@ function Logs({ names }: { names: Map<string, string> }) {
     <time>{new Date(l.created_at).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' })}</time>
    </li>)}</ul>}
  </div>;
+}
+
+function ConfirmDays({ member, onCancel, onConfirm }: { member: Member; onCancel: () => void; onConfirm: () => void }) {
+	const next = plusDays(member.membership_expires_at, 30);
+	const current = member.membership_expires_at && new Date(member.membership_expires_at) > new Date() ? member.membership_expires_at : null;
+	return <form onSubmit={(e) => { e.preventDefault(); onConfirm(); }} className="grid gap-4">
+		<DialogHeader><DialogTitle>SUMAR 30 DÍAS</DialogTitle><DialogDescription>{member.display_name || member.email} · {member.email}</DialogDescription></DialogHeader>
+		{isCourtesy(member.membership)
+			? <p className="section-text">Es membresía de cortesía: siempre está al corriente y no usa fecha de vencimiento. Aun así puedes registrarle una fecha.</p>
+			: <div className="admin-confirm-dates">
+				<span className="category">VENCE AHORA</span><strong>{current ? fmt(current) : 'Sin vigencia'}</strong>
+				<span className="category">VENCERÁ EL</span><strong className="admin-confirm-next">{fmt(next)}</strong>
+			</div>}
+		{!member.membership && !isCourtesy(member.membership) && <p className="admin-confirm-note">No tiene membresía: se le asignará «Mensualidad» con 30 días.</p>}
+		<div className="admin-confirm-actions">
+			<Button type="button" variant="outline" size="lg" onClick={onCancel}>CANCELAR</Button>
+			<Button type="submit" variant="sport" size="lg">SÍ, SUMAR 30 DÍAS</Button>
+		</div>
+	</form>;
 }

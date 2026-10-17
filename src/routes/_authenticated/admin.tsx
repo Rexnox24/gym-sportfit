@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { checkIsAdmin, listMembers, setMembership, deleteMember, updateMember, listLogs, interpretQuery, recordCashPayment } from '@/lib/admin.functions';
 import { matchesSmart, toCsv, type SmartFilter } from '@/lib/admin-filters';
 import { pageHead } from '@/lib/gym-data';
-import { plans, effectiveDays, computeExpiry, isCourtesy, type PlanId } from '@/lib/plans';
+import { plans, effectiveDays, computeExpiry, isCourtesy, plusDays, type PlanId } from '@/lib/plans';
 
 export const Route = createFileRoute('/_authenticated/admin')({
  staticData: { sitemap: false },
@@ -40,6 +40,7 @@ function Admin() {
  const [editing, setEditing] = useState<string | null>(null);
  const [showLogs, setShowLogs] = useState(false);
  const [cashFor, setCashFor] = useState<string | null>(null);
+	const [daysFor, setDaysFor] = useState<string | null>(null);
 
  const rows = useMemo(() => (list.data?.members ?? []).map((m) => ({ ...m, days: effectiveDays(m.membership, m.membership_expires_at) })), [list.data]);
  const counts = {

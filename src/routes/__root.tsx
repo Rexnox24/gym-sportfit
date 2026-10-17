@@ -79,16 +79,12 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Gym Sportfit" },
-      { name: "description", content: "Fuerza, disciplina y evolución en Gym Sportfit." },
-      { property: "og:title", content: "Gym Sportfit" },
-      { property: "og:description", content: "Fuerza, disciplina y evolución en Gym Sportfit." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:site_name", content: "Gym Sportfit" },
     ],
     links: [
       {

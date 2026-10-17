@@ -13,6 +13,7 @@ import { pageHead } from '@/lib/gym-data';
 import { plans, daysUntil, computeExpiry } from '@/lib/plans';
 
 export const Route = createFileRoute('/_authenticated/admin')({
+ staticData: { sitemap: false },
  head: () => pageHead('Gestión de clientes', 'Panel privado del dueño de Gym Sportfit para gestionar clientes y membresías.'),
  component: Admin,
 });

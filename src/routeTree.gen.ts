@@ -16,6 +16,7 @@ import { Route as EquipamientoRouteImport } from './routes/equipamiento'
 import { Route as PlanesRouteImport } from './routes/planes'
 import { Route as PromocionesRouteImport } from './routes/promociones'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 
@@ -53,6 +54,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/planes': typeof PlanesRoute
   '/promociones': typeof PromocionesRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/portal': typeof AuthenticatedPortalRoute
 }
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/planes': typeof PlanesRoute
   '/promociones': typeof PromocionesRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/portal': typeof AuthenticatedPortalRoute
 }
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/planes': typeof PlanesRoute
   '/promociones': typeof PromocionesRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
 }
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/planes'
     | '/promociones'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/admin'
     | '/portal'
   fileRoutesByTo: FileRoutesByTo
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/planes'
     | '/promociones'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/admin'
     | '/portal'
   id:
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/planes'
     | '/promociones'
     | '/reset-password'
+    | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/portal'
   fileRoutesById: FileRoutesById
@@ -138,6 +150,7 @@ export interface RootRouteChildren {
   PlanesRoute: typeof PlanesRoute
   PromocionesRoute: typeof PromocionesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -191,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -229,6 +249,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanesRoute: PlanesRoute,
   PromocionesRoute: PromocionesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

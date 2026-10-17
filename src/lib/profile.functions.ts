@@ -11,7 +11,7 @@ export const getProfile = createServerFn({method:'GET'}).middleware([requireSupa
   // Cuentas creadas sin perfil (p. ej. con Google): se crea uno vacío sin membresía.
   const {supabaseAdmin}=await import('@/integrations/supabase/client.server');
   const meta=auth.user?.user_metadata ?? {};
-  const {data:created,error:insErr}=await supabaseAdmin.from('profiles').upsert({id:context.userId,display_name:String(meta.display_name ?? meta.full_name ?? '').slice(0,100)},{onConflict:'id'}).select(cols).single();
+  const {data:created,error:insErr}=await supabaseAdmin.from('profiles').upsert({id:context.userId,display_name:String(meta['display_name'] ?? meta['full_name'] ?? '').slice(0,100)},{onConflict:'id'}).select(cols).single();
   if(insErr||!created) throw new Error('No pudimos cargar tu perfil. Vuelve a intentarlo.');
   data=created;
  }

@@ -11,3 +11,10 @@ describe('cortesía y visita', () => {
  it('Cortesía no se compra en línea y es solo del dueño', () => expect(plans.find(p => p.id === 'cortesia')?.ownerOnly).toBe(true));
  it('Visita cuesta 70 y se paga en el gimnasio', () => { const v = plans.find(p => p.id === 'visita'); expect(v?.price).toBe(70); expect(v?.onlineCheckout).toBe(false); });
 });
+
+import { plusDays } from '@/lib/plans';
+describe('sumar días de renovación', () => {
+	it('si aún le quedan días, se suman al final de la vigencia', () => expect(plusDays('2026-10-20T12:00:00Z', 30, new Date('2026-10-17T12:00:00Z')).slice(0, 10)).toBe('2026-11-19'));
+	it('si ya venció, se cuentan desde hoy', () => expect(plusDays('2026-10-01T12:00:00Z', 30, new Date('2026-10-17T12:00:00Z')).slice(0, 10)).toBe('2026-11-16'));
+	it('sin vigencia, se cuentan desde hoy', () => expect(plusDays(null, 30, new Date('2026-10-17T12:00:00Z')).slice(0, 10)).toBe('2026-11-16'));
+});

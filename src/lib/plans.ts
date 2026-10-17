@@ -47,6 +47,13 @@ export function computeExpiry(planId: PlanId, currentExpiry: string | null, now 
  return d.toISOString();
 }
 
+/** Suma días de renovación: si aún le quedan días, se suman al final de la vigencia actual. */
+export function plusDays(currentExpiry: string | null, days: number, now = new Date()): string {
+ const base = currentExpiry && new Date(currentExpiry) > now ? new Date(currentExpiry) : new Date(now);
+ base.setDate(base.getDate() + days);
+ return base.toISOString();
+}
+
 /** Días completos que faltan para el vencimiento (0 = vence hoy, negativo = vencido). */
 export function daysUntil(expiry: string | null, now = new Date()) {
  if (!expiry) return null;

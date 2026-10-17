@@ -10,3 +10,4 @@
 - [ ] Pago con PayPal (modo de prueba): espera las claves de prueba de PayPal Developer.
 - [x] Avisos de vencimiento en el portal (3 días antes y el día).
 - [ ] Avisos por correo al miembro y copia al dueño: espera dominio propio y correo del dueño.
+- [x] Botón «+30 días» con ventana de confirmación antes de aplicar.

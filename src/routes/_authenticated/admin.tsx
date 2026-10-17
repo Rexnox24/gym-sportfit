@@ -40,7 +40,7 @@ function Admin() {
  const [editing, setEditing] = useState<string | null>(null);
  const [showLogs, setShowLogs] = useState(false);
  const [cashFor, setCashFor] = useState<string | null>(null);
-	const [daysFor, setDaysFor] = useState<string | null>(null);
+ const [daysFor, setDaysFor] = useState<string | null>(null);
 
  const rows = useMemo(() => (list.data?.members ?? []).map((m) => ({ ...m, days: effectiveDays(m.membership, m.membership_expires_at) })), [list.data]);
  const counts = {

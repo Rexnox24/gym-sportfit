@@ -57,6 +57,13 @@
       "when": 1792215344984,
       "tag": "0007_transfer_owner_and_log_actions",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792218578759,
+      "tag": "0008_phone_cash_courtesy",
+      "breakpoints": true
     }
   ]
 }

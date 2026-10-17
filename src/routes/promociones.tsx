@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { pageHead, promotions } from '@/lib/gym-data';
 
 export const Route = createFileRoute('/promociones')({
+ staticData: { sitemap: true },
  head: () => pageHead('Promociones', 'Conoce las promociones de Gym Sportfit: octubre, noviembre y diciembre de 2026 por $750 y Promo Anual por $3,700.'),
  component: Promotions,
 });

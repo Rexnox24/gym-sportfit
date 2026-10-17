@@ -7,6 +7,7 @@ import { pageHead, openingHours, amenities } from '@/lib/gym-data';
 import { plans, isPlanAvailable } from '@/lib/plans';
 
 export const Route = createFileRoute('/planes')({
+ staticData: { sitemap: true },
  head: () => pageHead('Planes y precios', 'Elige tu plan en Gym Sportfit y paga al instante con PayPal: semanal $150, mensualidad $350, trimestral $780, promo de fin de año y Promo Anual $3,700.'),
  component: Plans,
 });

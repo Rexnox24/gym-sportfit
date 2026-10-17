@@ -47,7 +47,7 @@ export const setMembership = createServerFn({ method: 'POST' }).middleware([requ
  });
 
 export const updateMember = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
- .inputValidator(z.object({ userId: z.string().uuid(), displayName: z.string().trim().max(100), membership: z.string().trim().max(60).nullable(), expiresAt: z.string().datetime().nullable(), active: z.boolean() }))
+ .inputValidator(z.object({ userId: z.string().uuid(), displayName: z.string().trim().max(100), membership: z.string().trim().max(60).nullable(), expiresAt: z.string().datetime().nullable(), active: z.boolean(), paymentStatus: z.enum(['manual', 'paid', 'test', 'unrecorded']) }))
  .handler(async ({ data, context }) => {
   await assertAdmin(context);
   if (data.userId === context.userId && !data.active) throw new Error('No puedes desactivar tu propia cuenta de dueño.');
@@ -55,7 +55,6 @@ export const updateMember = createServerFn({ method: 'POST' }).middleware([requi
   const { data: prev } = await supabaseAdmin.from('profiles').select('membership,membership_expires_at,payment_status,account_active').eq('id', data.userId).single();
   if (!prev) throw new Error('No encontramos al cliente.');
   const membership = data.membership || null;
-  const changedPlan = membership !== prev.membership || data.expiresAt !== (prev.membership_expires_at ? new Date(prev.membership_expires_at).toISOString() : null);
   // Primero el estado de cuenta (para que la bitácora lo registre por separado), luego el plan.
   if (data.active !== prev.account_active) {
    const { error } = await supabaseAdmin.from('profiles').update({ account_active: data.active }).eq('id', data.userId);
@@ -64,7 +63,7 @@ export const updateMember = createServerFn({ method: 'POST' }).middleware([requi
   }
   const { error } = await supabaseAdmin.from('profiles').update({
    display_name: data.displayName, membership, membership_expires_at: data.expiresAt,
-   payment_status: changedPlan ? (data.expiresAt ? 'manual' : 'unrecorded') : prev.payment_status,
+   payment_status: data.paymentStatus,
   }).eq('id', data.userId);
   if (error) throw new Error('No pudimos guardar los cambios.');
   return { ok: true };

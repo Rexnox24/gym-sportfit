@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { useMemo, useState, type FormEvent } from 'react';
-import { Search, CalendarPlus, Trash2, Pencil, History, Download, Sparkles, X } from 'lucide-react';
+import { Search, CalendarPlus, Trash2, Pencil, History, Download, Sparkles, X, Power } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -19,7 +19,7 @@ export const Route = createFileRoute('/_authenticated/admin')({
 
 type Filter = 'todos' | 'activos' | 'por-vencer' | 'vencidos' | 'sin-pago' | 'inactivos';
 const fmt = (d: string) => new Date(d).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
-const actionLabel: Record<string, string> = { alta: 'Alta', activacion: 'Activación', renovacion: 'Renovación', cambio_plan: 'Cambio de plan', suspension: 'Suspensión', reactivacion: 'Reactivación', desactivacion: 'Desactivación', pago_paypal: 'Pago con PayPal' };
+const actionLabel: Record<string, string> = { alta: 'Alta', activacion: 'Activación', renovacion: 'Renovación', cambio_plan: 'Cambio de plan', suspension: 'Suspensión', reactivacion: 'Reactivación', desactivacion: 'Desactivación', pago_paypal: 'Pago con PayPal', pago_prueba: 'Pago simulado (prueba)', pago_manual: 'Pago registrado', pago_pendiente: 'Pago pendiente', ajuste_vencimiento: 'Ajuste de vencimiento' };
 
 function Admin() {
  const isAdminFn = useServerFn(checkIsAdmin);
@@ -43,6 +43,7 @@ function Admin() {
   activos: rows.filter((r) => r.account_active && r.days !== null && r.days >= 0).length,
   porVencer: rows.filter((r) => r.days !== null && r.days >= 0 && r.days <= 4).length,
   vencidos: rows.filter((r) => r.days !== null && r.days < 0).length,
+  sinPago: rows.filter((r) => r.days === null || r.payment_status === 'unrecorded').length,
  };
  const shown = rows.filter((r) => {
   const t = q.toLowerCase();
@@ -51,7 +52,7 @@ function Admin() {
   if (filter === 'activos') return r.account_active && r.days !== null && r.days >= 0;
   if (filter === 'por-vencer') return r.days !== null && r.days >= 0 && r.days <= 4;
   if (filter === 'vencidos') return r.days !== null && r.days < 0;
-  if (filter === 'sin-pago') return r.days === null;
+  if (filter === 'sin-pago') return r.days === null || r.payment_status === 'unrecorded';
   if (filter === 'inactivos') return !r.account_active;
   return true;
  });
@@ -91,6 +92,7 @@ function Admin() {
    <div className="profile-stat"><span className="category">SOCIOS ACTIVOS</span><h3>{counts.activos}</h3></div>
    <div className="profile-stat is-warn"><span className="category">POR VENCER (4 DÍAS)</span><h3>{counts.porVencer}</h3></div>
    <div className="profile-stat is-danger"><span className="category">VENCIDOS</span><h3>{counts.vencidos}</h3></div>
+   <div className="profile-stat is-danger"><span className="category">SIN PAGO</span><h3>{counts.sinPago}</h3></div>
    <div className="profile-stat"><span className="category">INGRESOS DEL MES</span><h3>${list.data?.revenue ?? 0}</h3></div>
   </div>
   <form className="admin-ask" onSubmit={askAi}>
@@ -113,6 +115,7 @@ function Admin() {
      <div className="admin-actions">
       <Button size="sm" variant="sport" onClick={() => setEditing(r.id)}><Pencil />Editar</Button>
       <Button size="sm" variant="outline" onClick={() => addDays(r, 30)}><CalendarPlus />+30 días</Button>
+      <Button size="sm" variant="outline" onClick={() => run(updFn({ data: { userId: r.id, displayName: r.display_name, membership: r.membership, expiresAt: r.membership_expires_at ? new Date(r.membership_expires_at).toISOString() : null, active: !r.account_active, paymentStatus: r.payment_status as PayStatus } }), r.account_active ? 'Cuenta desactivada' : 'Cuenta reactivada')}><Power />{r.account_active ? 'Desactivar' : 'Activar'}</Button>
       <Button size="sm" variant="destructive" onClick={() => { if (confirm('¿Dar de baja definitiva y eliminar la cuenta de este cliente? No se puede deshacer.')) run(delFn({ data: { userId: r.id } }), 'Cliente dado de baja'); }}><Trash2 />Baja definitiva</Button>
      </div>
     </li>;
@@ -126,7 +129,8 @@ function Admin() {
  </main>;
 }
 
-type Member = { id: string; display_name: string; membership: string | null; membership_expires_at: string | null; account_active: boolean; email: string };
+type PayStatus = 'manual' | 'paid' | 'test' | 'unrecorded';
+type Member = { id: string; display_name: string; payment_status: string; membership: string | null; membership_expires_at: string | null; account_active: boolean; email: string };
 function EditForm({ member, onDone, run }: { member: Member; onDone: () => void; run: (p: Promise<unknown>, ok: string) => Promise<boolean> }) {
  const fn = useServerFn(updateMember);
  const [name, setName] = useState(member.display_name);
@@ -138,7 +142,7 @@ function EditForm({ member, onDone, run }: { member: Member; onDone: () => void;
   e.preventDefault(); setBusy(true);
   if (plan && !date) { toast.error('Elige la fecha de vencimiento.'); setBusy(false); return; }
   const expiresAt = plan && date ? new Date(`${date}T23:59:59`).toISOString() : null;
-  const ok = await run(fn({ data: { userId: member.id, displayName: name, membership: plan || null, expiresAt, active } }), 'Cambios guardados');
+  const ok = await run(fn({ data: { userId: member.id, displayName: name, membership: plan || null, expiresAt, active, paymentStatus: pay } }), 'Cambios guardados');
   setBusy(false); if (ok) onDone();
  }
  const options = Array.from(new Set([...plans.map((p) => p.name), ...(member.membership ? [member.membership] : [])]));
@@ -147,7 +151,7 @@ function EditForm({ member, onDone, run }: { member: Member; onDone: () => void;
   <label className="field"><span>Nombre</span><input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} /></label>
   <label className="field"><span>Membresía</span><select value={plan} onChange={(e) => { const v = e.target.value; setPlan(v); const p = plans.find((x) => x.name === v); if (!v) setDate(''); else if (p) setDate(new Date(computeExpiry(p.id, member.membership_expires_at)).toLocaleDateString('en-CA')); }}><option value="">Sin membresía</option>{options.map((o) => <option key={o} value={o}>{o}</option>)}</select></label>
   <label className="field"><span>Vence el</span><input type="date" className="admin-date" value={date} onChange={(e) => setDate(e.target.value)} onClick={(e) => e.currentTarget.showPicker?.()} disabled={!plan} required={!!plan} /></label>
-  <label className="admin-switch"><Switch checked={active} onCheckedChange={setActive} /><span>{active ? 'Cuenta activa' : 'Cuenta desactivada (no puede entrar)'}</span></label>
+  <label className="admin-switch"><Switch checked={active} onCheckedChange={setActive} /><span>{active ? 'Cuenta ACTIVA — puede entrar al portal' : 'Cuenta DESACTIVADA — no puede entrar (conserva su historial)'}</span></label>
   <Button type="submit" variant="sport" size="lg" disabled={busy}>{busy ? 'GUARDANDO…' : 'GUARDAR CAMBIOS'}</Button>
  </form>;
 }

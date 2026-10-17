@@ -5,3 +5,9 @@ describe('planes', () => {
  it('Promo Anual dura 12 meses', () => expect(computeExpiry('anual', null, new Date('2026-01-15T12:00:00Z')).slice(0, 7)).toBe('2027-01'));
  it('Visita y Anual no se compran en línea', () => { const ids = onlinePlans(new Date('2026-10-17')).map(p => p.id); expect(ids).not.toContain('visita'); expect(ids).not.toContain('anual'); });
 });
+import { effectiveDays, COURTESY_PLAN } from '@/lib/plans';
+describe('cortesía y visita', () => {
+ it('Cortesía / Staff siempre al corriente sin fecha', () => { expect(effectiveDays(COURTESY_PLAN, null)).toBeGreaterThan(0); expect(computeExpiry('cortesia', null)).toBeNull(); });
+ it('Cortesía no se compra en línea y es solo del dueño', () => expect(plans.find(p => p.id === 'cortesia')?.ownerOnly).toBe(true));
+ it('Visita cuesta 70 y se paga en el gimnasio', () => { const v = plans.find(p => p.id === 'visita'); expect(v?.price).toBe(70); expect(v?.onlineCheckout).toBe(false); });
+});

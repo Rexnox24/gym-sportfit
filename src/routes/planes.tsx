@@ -13,7 +13,7 @@ export const Route = createFileRoute('/planes')({
 });
 
 function Plans() {
- const available = plans.filter(p => p.id !== 'visita' && isPlanAvailable(p));
+ const available = plans.filter(p => !p.ownerOnly && isPlanAvailable(p));
  return <main className="shell">
   <div className="page-title"><div className="eyebrow">INVIERTE EN TI</div><h1>ELIGE TU <span className="text-primary">SIGUIENTE NIVEL.</span></h1><p>Paga en línea y empieza a entrenar hoy mismo.</p></div>
   <section className="rates-section" aria-label="Planes y precios">
@@ -23,7 +23,7 @@ function Plans() {
     <h2>{plan.name}</h2>
     <p className="plan-price"><span>$</span>{plan.price.toLocaleString('es-MX')}<small>MXN</small></p>
     <ul className="plan-features">{plan.features.map(f => <li key={f}><Check aria-hidden="true" />{f}</li>)}</ul>
-    <div className="plan-pay">{plan.onlineCheckout ? <PaypalButton planId={plan.id as 'mensualidad'} /> : <p className="plan-onsite">Contrátala directamente en recepción</p>}</div>
+    <div className="plan-pay">{plan.onlineCheckout ? <PaypalButton planId={plan.id as 'mensualidad'} /> : <p className="plan-onsite">{plan.id === 'visita' ? 'Paga en efectivo en el gimnasio con el dueño o encargado' : 'Contrátala directamente en recepción'}</p>}</div>
    </article>)}</div>
    <SimulatedPayButton />
    <div className="payment-strip"><p><Zap aria-hidden="true" />Pago inmediato con PayPal: tarjeta de crédito, débito o saldo PayPal.</p><p><ShieldCheck aria-hidden="true" />Tu membresía se activa al instante en tu portal.</p><Button asChild variant="link"><Link to="/promociones">VER PROMOCIONES <ArrowUpRight /></Link></Button></div>

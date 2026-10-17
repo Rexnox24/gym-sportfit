@@ -22,3 +22,6 @@ describe('csv', () => {
   expect(toCsv(['a'], [['x,"y"']])).toBe('\uFEFFa\r\n"x,""y"""');
  });
 });
+describe('csv teléfono', () => {
+ it('incluye la columna Teléfono', () => expect(toCsv(['Nombre', 'Teléfono'], [['Ana', '55 1234']])).toContain('Teléfono\r\nAna,55 1234'));
+});

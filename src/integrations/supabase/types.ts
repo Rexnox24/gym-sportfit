@@ -38,6 +38,36 @@ export type Database = {
         }
         Relationships: []
       }
+      membership_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          membership: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          membership?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          membership?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -73,6 +103,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_active: boolean
           created_at: string
           display_name: string
           id: string
@@ -81,6 +112,7 @@ export type Database = {
           payment_status: string
         }
         Insert: {
+          account_active?: boolean
           created_at?: string
           display_name?: string
           id: string
@@ -89,6 +121,7 @@ export type Database = {
           payment_status?: string
         }
         Update: {
+          account_active?: boolean
           created_at?: string
           display_name?: string
           id?: string

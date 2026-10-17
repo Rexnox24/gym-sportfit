@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { pageHead } from '@/lib/gym-data';
-export const Route=createFileRoute('/reset-password')({head:()=>pageHead('Restablecer contraseña','Elige una nueva contraseña para tu cuenta Gym Sportfit.'),component:Reset});
+export const Route=createFileRoute('/reset-password')({staticData:{sitemap:false},head:()=>({meta:[...pageHead('Restablecer contraseña','Elige una nueva contraseña para tu cuenta Gym Sportfit.').meta,{name:'robots',content:'noindex'}]}),component:Reset});
 function Reset(){const [valid,setValid]=useState(false);const [password,setPassword]=useState('');const [confirm,setConfirm]=useState('');const [message,setMessage]=useState('');const [busy,setBusy]=useState(false);const [done,setDone]=useState(false);
  useEffect(()=>{const hash=new URLSearchParams(window.location.hash.slice(1));if(hash.get('type')==='recovery')supabase.auth.getUser().then(({data})=>setValid(!!data.user));},[]);
  async function submit(e:FormEvent){e.preventDefault();if(password!==confirm){setMessage('Las contraseñas no coinciden.');return;}setBusy(true);const {error}=await supabase.auth.updateUser({password});setBusy(false);if(error)setMessage('El enlace no es válido o ha caducado. Solicita uno nuevo.');else{setDone(true);setMessage('Tu contraseña se ha actualizado.');}}

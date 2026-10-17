@@ -29,6 +29,13 @@
       "when": 1792210189983,
       "tag": "0003_admin_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792210399841,
+      "tag": "0004_grant_owner_admin",
+      "breakpoints": true
     }
   ]
 }

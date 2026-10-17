@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { simulatePayment } from '@/lib/simulate.functions';
 import { onlinePlans, type PlanId } from '@/lib/plans';
 
-type OnlineId = Exclude<PlanId, 'visita' | 'anual'>;
+type OnlineId = Exclude<PlanId, 'visita' | 'anual' | 'cortesia'>;
 
 /** TEMPORAL: botón de pago simulado (modo prueba). */
 export function SimulatedPayButton({ defaultPlan = 'mensualidad' }: { defaultPlan?: OnlineId }) {
@@ -24,7 +24,7 @@ export function SimulatedPayButton({ defaultPlan = 'mensualidad' }: { defaultPla
   setBusy(true);
   try {
    const r = await fn({ data: { planId } });
-   toast.success(`Pago simulado: ${r.plan} activa hasta el ${new Date(r.expiresAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}`);
+   toast.success(`Pago simulado: ${r.plan} activa hasta el ${new Date(r.expiresAt ?? Date.now()).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}`);
    await qc.invalidateQueries({ queryKey: ['member-profile'] });
   } catch (e) { toast.error(e instanceof Error ? e.message : 'No pudimos simular el pago.'); }
   finally { setBusy(false); }

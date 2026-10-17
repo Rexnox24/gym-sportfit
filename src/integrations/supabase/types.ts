@@ -74,6 +74,7 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          method: string
           paypal_order_id: string
           plan: string
           status: string
@@ -84,6 +85,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          method?: string
           paypal_order_id: string
           plan: string
           status?: string
@@ -94,6 +96,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          method?: string
           paypal_order_id?: string
           plan?: string
           status?: string
@@ -110,6 +113,7 @@ export type Database = {
           membership: string | null
           membership_expires_at: string | null
           payment_status: string
+          phone: string | null
         }
         Insert: {
           account_active?: boolean
@@ -119,6 +123,7 @@ export type Database = {
           membership?: string | null
           membership_expires_at?: string | null
           payment_status?: string
+          phone?: string | null
         }
         Update: {
           account_active?: boolean
@@ -128,6 +133,7 @@ export type Database = {
           membership?: string | null
           membership_expires_at?: string | null
           payment_status?: string
+          phone?: string | null
         }
         Relationships: []
       }

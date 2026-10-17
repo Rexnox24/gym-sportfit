@@ -16,7 +16,7 @@ export const checkIsAdmin = createServerFn({ method: 'GET' }).middleware([requir
 
 export const listMembers = createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
  await assertAdmin(context);
- const { data: profiles, error } = await context.supabase.from('profiles').select('id,display_name,membership,payment_status,membership_expires_at,created_at,account_active').order('created_at', { ascending: false }).limit(1000);
+ const { data: profiles, error } = await context.supabase.from('profiles').select('id,display_name,phone,membership,payment_status,membership_expires_at,created_at,account_active').order('created_at', { ascending: false }).limit(1000);
  if (error) throw new Error('No pudimos cargar los clientes.');
  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
  const emails = new Map<string, string>();
@@ -28,7 +28,7 @@ export const listMembers = createServerFn({ method: 'GET' }).middleware([require
  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
  const { data: pays } = await context.supabase.from('payments').select('amount').gte('created_at', monthStart.toISOString());
  const revenue = (pays ?? []).reduce((s: number, p: { amount: number }) => s + Number(p.amount), 0);
- return { revenue, members: (profiles ?? []).map((p: any) => ({ ...p, email: emails.get(p.id) ?? '' })) as Array<{ id: string; display_name: string; membership: string | null; payment_status: string; membership_expires_at: string | null; created_at: string; account_active: boolean; email: string }> };
+ return { revenue, members: (profiles ?? []).map((p: any) => ({ ...p, email: emails.get(p.id) ?? '' })) as Array<{ id: string; display_name: string; phone: string | null; membership: string | null; payment_status: string; membership_expires_at: string | null; created_at: string; account_active: boolean; email: string }> };
 });
 
 async function setBan(userId: string, active: boolean) {
@@ -47,7 +47,7 @@ export const setMembership = createServerFn({ method: 'POST' }).middleware([requ
  });
 
 export const updateMember = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
- .inputValidator(z.object({ userId: z.string().uuid(), displayName: z.string().trim().max(100), membership: z.string().trim().max(60).nullable(), expiresAt: z.string().datetime().nullable(), active: z.boolean(), paymentStatus: z.enum(['manual', 'paid', 'test', 'unrecorded']) }))
+ .inputValidator(z.object({ userId: z.string().uuid(), displayName: z.string().trim().max(100), phone: z.string().trim().max(20).regex(/^[0-9+ ()-]*$/).optional(), membership: z.string().trim().max(60).nullable(), expiresAt: z.string().datetime().nullable(), active: z.boolean(), paymentStatus: z.enum(['manual', 'paid', 'test', 'unrecorded']) }))
  .handler(async ({ data, context }) => {
   await assertAdmin(context);
   if (data.userId === context.userId && !data.active) throw new Error('No puedes desactivar tu propia cuenta de dueño.');
@@ -62,11 +62,29 @@ export const updateMember = createServerFn({ method: 'POST' }).middleware([requi
    await setBan(data.userId, data.active);
   }
   const { error } = await supabaseAdmin.from('profiles').update({
-   display_name: data.displayName, membership, membership_expires_at: data.expiresAt,
+   display_name: data.displayName, ...(data.phone !== undefined ? { phone: data.phone || null } : {}), membership, membership_expires_at: data.expiresAt,
    payment_status: data.paymentStatus,
   }).eq('id', data.userId);
   if (error) throw new Error('No pudimos guardar los cambios.');
   return { ok: true };
+ });
+
+/** Pago en efectivo en recepción: registra el ingreso y extiende la membresía. */
+export const recordCashPayment = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
+ .inputValidator(z.object({ userId: z.string().uuid(), planId: z.enum(['visita', 'semanal', 'mensualidad', 'trimestral', 'promo-fin-2026', 'anual']) }))
+ .handler(async ({ data, context }) => {
+  await assertAdmin(context);
+  const { plans, computeExpiry } = await import('./plans');
+  const plan = plans.find((p) => p.id === data.planId)!;
+  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+  const { data: prev } = await supabaseAdmin.from('profiles').select('membership,membership_expires_at').eq('id', data.userId).single();
+  if (!prev) throw new Error('No encontramos al cliente.');
+  const { error: payErr } = await supabaseAdmin.from('payments').insert({ user_id: data.userId, plan: plan.name, amount: plan.price, currency: 'MXN', paypal_order_id: `efectivo-${crypto.randomUUID()}`, status: 'completed', method: 'efectivo' });
+  if (payErr) throw new Error('No pudimos registrar el pago.');
+  const expiresAt = computeExpiry(plan.id, prev.membership === plan.name ? prev.membership_expires_at : null);
+  const { error } = await supabaseAdmin.from('profiles').update({ membership: plan.name, membership_expires_at: expiresAt, payment_status: 'manual' }).eq('id', data.userId);
+  if (error) throw new Error('El pago quedó registrado, pero no pudimos actualizar la membresía.');
+  return { ok: true, amount: plan.price, expiresAt };
  });
 
 export const listLogs = createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {

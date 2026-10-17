@@ -26,6 +26,7 @@ function Admin() {
  const listFn = useServerFn(listMembers);
  const setFn = useServerFn(setMembership);
  const delFn = useServerFn(deleteMember);
+ const updFn = useServerFn(updateMember);
  const smartFn = useServerFn(interpretQuery);
  const qc = useQueryClient();
  const admin = useQuery(queryOptions({ queryKey: ['is-admin'], queryFn: () => isAdminFn() }));
@@ -137,6 +138,7 @@ function EditForm({ member, onDone, run }: { member: Member; onDone: () => void;
  const [plan, setPlan] = useState(member.membership ?? '');
  const [date, setDate] = useState(member.membership_expires_at ? new Date(member.membership_expires_at).toLocaleDateString('en-CA') : '');
  const [active, setActive] = useState(member.account_active);
+ const [pay, setPay] = useState<PayStatus>((['manual','paid','test','unrecorded'].includes(member.payment_status) ? member.payment_status : 'unrecorded') as PayStatus);
  const [busy, setBusy] = useState(false);
  async function save(e: FormEvent) {
   e.preventDefault(); setBusy(true);

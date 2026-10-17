@@ -20,7 +20,10 @@ export const plans: PlanOption[] = [
  { id: 'mensualidad', name: 'Mensualidad', price: 350, period: '1 mes', highlight: 'MÁS POPULAR', onlineCheckout: true, features: ['Acceso durante 1 mes', 'Pesas y cardio', 'Vestidores y sanitario'] },
  { id: 'trimestral', name: 'Trimestral', price: 780, period: '3 meses', onlineCheckout: true, features: ['Acceso durante 3 meses', 'Pesas y cardio', 'Vestidores y sanitario'] },
  { id: 'promo-fin-2026', name: 'Promo fin 2026', price: 750, period: 'Octubre · Noviembre · Diciembre', highlight: 'PROMOCIÓN', availableUntil: '2026-12-31T23:59:59-06:00', onlineCheckout: true, features: ['3 meses por $750', 'Ahorras $30 frente al trimestral', 'Pesas y cardio'] },
+ { id: 'anual', name: 'Promo Anual', price: 3700, period: '12 meses', highlight: 'MEJOR PRECIO', onlineCheckout: false, features: ['12 meses de acceso', 'Pesas, cardio y vestidores', 'El mejor costo por mes', 'Contrátala en recepción'] },
 ];
+
+export const onlinePlans = (now = new Date()) => plans.filter(p => p.onlineCheckout && isPlanAvailable(p, now));
 
 export function isPlanAvailable(plan: PlanOption, now = new Date()) {
  return !plan.availableUntil || now <= new Date(plan.availableUntil);

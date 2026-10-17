@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { simulatePayment } from '@/lib/simulate.functions';
 import { onlinePlans, type PlanId } from '@/lib/plans';
 
-type OnlineId = Exclude<PlanId, 'visita' | 'anual'>;
+type OnlineId = Exclude<PlanId, 'visita' | 'anual' | 'cortesia'>;
 
 /** TEMPORAL: botón de pago simulado (modo prueba). */
 export function SimulatedPayButton({ defaultPlan = 'mensualidad' }: { defaultPlan?: OnlineId }) {

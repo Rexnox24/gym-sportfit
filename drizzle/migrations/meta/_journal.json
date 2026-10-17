@@ -36,6 +36,13 @@
       "when": 1792210399841,
       "tag": "0004_grant_owner_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792210561838,
+      "tag": "0005_backfill_missing_profiles",
+      "breakpoints": true
     }
   ]
 }

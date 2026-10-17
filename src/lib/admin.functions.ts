@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 import { z } from 'zod';
+import type { SmartFilter } from './admin-filters';
 
 type Ctx = { supabase: any; userId: string };
 async function assertAdmin(context: Ctx) {
@@ -15,7 +16,7 @@ export const checkIsAdmin = createServerFn({ method: 'GET' }).middleware([requir
 
 export const listMembers = createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
  await assertAdmin(context);
- const { data: profiles, error } = await context.supabase.from('profiles').select('id,display_name,membership,payment_status,membership_expires_at,created_at').order('created_at', { ascending: false }).limit(1000);
+ const { data: profiles, error } = await context.supabase.from('profiles').select('id,display_name,membership,payment_status,membership_expires_at,created_at,account_active').order('created_at', { ascending: false }).limit(1000);
  if (error) throw new Error('No pudimos cargar los clientes.');
  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
  const emails = new Map<string, string>();
@@ -27,8 +28,13 @@ export const listMembers = createServerFn({ method: 'GET' }).middleware([require
  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
  const { data: pays } = await context.supabase.from('payments').select('amount').gte('created_at', monthStart.toISOString());
  const revenue = (pays ?? []).reduce((s: number, p: { amount: number }) => s + Number(p.amount), 0);
- return { revenue, members: (profiles ?? []).map((p: any) => ({ ...p, email: emails.get(p.id) ?? '' })) };
+ return { revenue, members: (profiles ?? []).map((p: any) => ({ ...p, email: emails.get(p.id) ?? '' })) as Array<{ id: string; display_name: string; membership: string | null; payment_status: string; membership_expires_at: string | null; created_at: string; account_active: boolean; email: string }> };
 });
+
+async function setBan(userId: string, active: boolean) {
+ const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+ await supabaseAdmin.auth.admin.updateUserById(userId, { ban_duration: active ? 'none' : '876000h' });
+}
 
 export const setMembership = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
  .inputValidator(z.object({ userId: z.string().uuid(), membership: z.string().trim().min(1).max(60).nullable(), expiresAt: z.string().datetime().nullable() }))
@@ -40,6 +46,37 @@ export const setMembership = createServerFn({ method: 'POST' }).middleware([requ
   return { ok: true };
  });
 
+export const updateMember = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
+ .inputValidator(z.object({ userId: z.string().uuid(), displayName: z.string().trim().max(100), membership: z.string().trim().max(60).nullable(), expiresAt: z.string().datetime().nullable(), active: z.boolean() }))
+ .handler(async ({ data, context }) => {
+  await assertAdmin(context);
+  if (data.userId === context.userId && !data.active) throw new Error('No puedes desactivar tu propia cuenta de dueño.');
+  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+  const { data: prev } = await supabaseAdmin.from('profiles').select('membership,membership_expires_at,payment_status,account_active').eq('id', data.userId).single();
+  if (!prev) throw new Error('No encontramos al cliente.');
+  const membership = data.membership || null;
+  const changedPlan = membership !== prev.membership || data.expiresAt !== (prev.membership_expires_at ? new Date(prev.membership_expires_at).toISOString() : null);
+  // Primero el estado de cuenta (para que la bitácora lo registre por separado), luego el plan.
+  if (data.active !== prev.account_active) {
+   const { error } = await supabaseAdmin.from('profiles').update({ account_active: data.active }).eq('id', data.userId);
+   if (error) throw new Error('No pudimos cambiar el estado de la cuenta.');
+   await setBan(data.userId, data.active);
+  }
+  const { error } = await supabaseAdmin.from('profiles').update({
+   display_name: data.displayName, membership, membership_expires_at: data.expiresAt,
+   payment_status: changedPlan ? (data.expiresAt ? 'manual' : 'unrecorded') : prev.payment_status,
+  }).eq('id', data.userId);
+  if (error) throw new Error('No pudimos guardar los cambios.');
+  return { ok: true };
+ });
+
+export const listLogs = createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+ await assertAdmin(context);
+ const { data, error } = await context.supabase.from('membership_logs').select('id,user_id,action,membership,expires_at,created_at').order('created_at', { ascending: false }).limit(200);
+ if (error) throw new Error('No pudimos cargar el historial.');
+ return (data ?? []) as Array<{ id: string; user_id: string; action: string; membership: string | null; expires_at: string | null; created_at: string }>;
+});
+
 export const deleteMember = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
  .inputValidator(z.object({ userId: z.string().uuid() }))
  .handler(async ({ data, context }) => {
@@ -49,4 +86,54 @@ export const deleteMember = createServerFn({ method: 'POST' }).middleware([requi
   const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
   if (error) throw new Error('No pudimos dar de baja al cliente.');
   return { ok: true };
+ });
+
+const filterSchema = {
+ type: 'object', additionalProperties: false,
+ required: ['status', 'planIncludes', 'minDaysOverdue', 'maxDaysUntil', 'summary'],
+ properties: {
+  status: { type: 'array', items: { type: 'string', enum: ['activos', 'por-vencer', 'vencidos', 'sin-pago', 'inactivos'] } },
+  planIncludes: { type: ['string', 'null'] },
+  minDaysOverdue: { type: ['integer', 'null'] },
+  maxDaysUntil: { type: ['integer', 'null'] },
+  summary: { type: 'string' },
+ },
+};
+
+/** Traduce una pregunta del dueño a filtros. La IA nunca recibe datos de los socios. */
+export const interpretQuery = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
+ .inputValidator(z.object({ query: z.string().trim().min(2).max(300) }))
+ .handler(async ({ data, context }): Promise<{ filter: SmartFilter | null; error: string | null }> => {
+  await assertAdmin(context);
+  const key = process.env['LOVABLE_API_KEY'];
+  if (!key) return { filter: null, error: 'El buscador inteligente no está configurado.' };
+  const res = await fetch('https://ai.gateway.lovable.dev/v1/responses', {
+   method: 'POST',
+   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'Lovable-API-Key': key, 'X-Lovable-AIG-SDK': 'fetch' },
+   body: JSON.stringify({
+    model: 'openai/gpt-6-astra', stream: true, store: false, reasoning: { effort: 'low' },
+    instructions: 'Convierte la consulta del dueño de un gimnasio en filtros de socios. Estados: activos (vigentes), por-vencer (vencen en 0-4 días), vencidos, sin-pago (sin membresía), inactivos (cuenta desactivada o suspendida). planIncludes: texto del plan si lo mencionan (Visita, Semanal, Mensualidad, Trimestral, Promo), si no null. minDaysOverdue: para «vencidos hace más de N días» usa N. maxDaysUntil: para «vencen esta semana» usa 7, «este mes» 30. summary: frase corta en español describiendo el filtro. Usa null o [] cuando no aplique.',
+    input: data.query,
+    text: { format: { type: 'json_schema', name: 'filtro_socios', strict: true, schema: filterSchema } },
+   }),
+  });
+  if (!res.ok || !res.body) {
+   const msg = res.status === 402 ? 'Se agotaron los créditos de IA. Recarga en Configuración → Planes y créditos.'
+    : res.status === 429 ? 'Demasiadas consultas seguidas. Espera un momento.'
+    : res.status === 403 ? 'El uso de IA está bloqueado para esta cuenta.' : 'No pudimos interpretar la consulta.';
+   console.error('interpretQuery', res.status, await res.text().catch(() => ''));
+   return { filter: null, error: msg };
+  }
+  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = ''; let text = '';
+  for (;;) {
+   const { done, value } = await reader.read(); if (done) break;
+   buf += dec.decode(value, { stream: true });
+   const lines = buf.split('\n'); buf = lines.pop() ?? '';
+   for (const l of lines) {
+    if (!l.startsWith('data:')) continue;
+    try { const ev = JSON.parse(l.slice(5)); if (ev.type === 'response.output_text.delta') text += ev.delta; } catch { /* ignorar */ }
+   }
+  }
+  try { return { filter: JSON.parse(text) as SmartFilter, error: null }; }
+  catch { return { filter: null, error: 'No entendimos la consulta. Intenta escribirla de otra forma.' }; }
  });

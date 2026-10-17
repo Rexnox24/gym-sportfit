@@ -221,8 +221,20 @@ function ConfirmDays({ member, onCancel, onConfirm }: { member: Member; onCancel
 			</div>}
 		{!member.membership && !isCourtesy(member.membership) && <p className="admin-confirm-note">No tiene membresía: se le asignará «Mensualidad» con 30 días.</p>}
 		<div className="admin-confirm-actions">
-			<Button type="button" variant="outline" size="lg" onClick={onCancel}>CANCELAR</Button>
+		<Button type="button" variant="outline" size="lg" onClick={onCancel}>CANCELAR</Button>
 			<Button type="submit" variant="sport" size="lg">SÍ, SUMAR 30 DÍAS</Button>
+		</div>
+	</form>;
+}
+
+function ConfirmDelete({ member, onCancel, onConfirm }: { member: Member; onCancel: () => void; onConfirm: () => void }) {
+	return <form onSubmit={(e) => { e.preventDefault(); onConfirm(); }} className="grid gap-4">
+		<DialogHeader><DialogTitle>DAR DE BAJA DEFINITIVA</DialogTitle><DialogDescription>{member.display_name || member.email} · {member.email}</DialogDescription></DialogHeader>
+		<p className="section-text">Se eliminará la cuenta de este cliente con todo su historial de membresías y pagos. <strong>No se puede deshacer.</strong></p>
+		{member.membership && <p className="admin-confirm-note">Actualmente tiene «{member.membership}»{isCourtesy(member.membership) ? ' (membresía de cortesía)' : ''}. Si solo quieres bloquearle el acceso, usa el botón «Desactivar».</p>}
+		<div className="admin-confirm-actions">
+			<Button type="button" variant="outline" size="lg" onClick={onCancel}>CANCELAR</Button>
+			<Button type="submit" variant="destructive" size="lg">SÍ, DAR DE BAJA</Button>
 		</div>
 	</form>;
 }

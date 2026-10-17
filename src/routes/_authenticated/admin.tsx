@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { checkIsAdmin, listMembers, setMembership, deleteMember, updateMember, listLogs, interpretQuery } from '@/lib/admin.functions';
 import { matchesSmart, toCsv, type SmartFilter } from '@/lib/admin-filters';
 import { pageHead } from '@/lib/gym-data';
-import { plans, daysUntil } from '@/lib/plans';
+import { plans, daysUntil, computeExpiry } from '@/lib/plans';
 
 export const Route = createFileRoute('/_authenticated/admin')({
  head: () => pageHead('Gestión de clientes', 'Panel privado del dueño de Gym Sportfit para gestionar clientes y membresías.'),
@@ -73,7 +73,7 @@ function Admin() {
   finally { setAsking(false); }
  }
  function exportCsv() {
-  const status = (r: (typeof rows)[number]) => !r.account_active ? 'Desactivada' : r.days === null ? 'Sin membresía' : r.days < 0 ? 'Vencido' : 'Al corriente';
+  const status = (r: (typeof rows)[number]) => !r.account_active ? 'Desactivada' : r.days === null ? (r.membership ? 'Sin fecha de vencimiento' : 'Sin membresía') : r.days < 0 ? 'Vencido' : 'Al corriente';
   const csv = toCsv(['Nombre', 'Correo', 'Plan', 'Vencimiento', 'Cuenta', 'Estado'], shown.map((r) => [r.display_name, r.email, r.membership ?? '', r.membership_expires_at ? new Date(r.membership_expires_at).toLocaleDateString('es-MX') : '', r.account_active ? 'Activa' : 'Desactivada', status(r)]));
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a'); a.href = url; a.download = `socios-sportfit-${new Date().toISOString().slice(0, 10)}.csv`;
@@ -106,7 +106,7 @@ function Admin() {
   {list.isLoading ? <p>Cargando clientes…</p> : shown.length === 0 ? <p className="section-text">No hay clientes en esta vista.</p> :
    <ul className="admin-list">{shown.map((r) => {
     const tone = !r.account_active ? 'is-none' : r.days === null ? 'is-none' : r.days < 0 ? 'is-danger' : r.days <= 4 ? 'is-warn' : 'is-ok';
-    const label = !r.account_active ? 'Cuenta desactivada' : r.days === null ? 'Sin membresía' : r.days < 0 ? `Vencido hace ${-r.days} ${r.days === -1 ? 'día' : 'días'}` : r.days === 0 ? 'Vence HOY' : `${r.days <= 4 ? 'Vence en ' + r.days + (r.days === 1 ? ' día' : ' días') : 'Vigente'} · ${fmt(r.membership_expires_at!)}`;
+    const label = !r.account_active ? 'Cuenta desactivada' : r.days === null ? (r.membership ? 'Sin fecha de vencimiento' : 'Sin membresía') : r.days < 0 ? `Vencido hace ${-r.days} ${r.days === -1 ? 'día' : 'días'}` : r.days === 0 ? 'Vence HOY' : `${r.days <= 4 ? 'Vence en ' + r.days + (r.days === 1 ? ' día' : ' días') : 'Vigente'} · ${fmt(r.membership_expires_at!)}`;
     return <li key={r.id} className="admin-row">
      <div className="admin-member"><strong>{r.display_name || 'Sin nombre'}</strong><span>{r.email}</span></div>
      <div className="admin-plan"><span className="category">{r.membership || '—'}</span><span className={'admin-status ' + tone}>{label}</span></div>
@@ -136,7 +136,8 @@ function EditForm({ member, onDone, run }: { member: Member; onDone: () => void;
  const [busy, setBusy] = useState(false);
  async function save(e: FormEvent) {
   e.preventDefault(); setBusy(true);
-  const expiresAt = date ? new Date(`${date}T23:59:59`).toISOString() : null;
+  if (plan && !date) { toast.error('Elige la fecha de vencimiento.'); setBusy(false); return; }
+  const expiresAt = plan && date ? new Date(`${date}T23:59:59`).toISOString() : null;
   const ok = await run(fn({ data: { userId: member.id, displayName: name, membership: plan || null, expiresAt, active } }), 'Cambios guardados');
   setBusy(false); if (ok) onDone();
  }
@@ -144,8 +145,8 @@ function EditForm({ member, onDone, run }: { member: Member; onDone: () => void;
  return <form onSubmit={save} className="grid gap-4">
   <DialogHeader><DialogTitle>EDITAR SOCIO</DialogTitle><DialogDescription>{member.email}</DialogDescription></DialogHeader>
   <label className="field"><span>Nombre</span><input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} /></label>
-  <label className="field"><span>Membresía</span><select value={plan} onChange={(e) => setPlan(e.target.value)}><option value="">Sin membresía</option>{options.map((o) => <option key={o} value={o}>{o}</option>)}</select></label>
-  <label className="field"><span>Vence el</span><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
+  <label className="field"><span>Membresía</span><select value={plan} onChange={(e) => { const v = e.target.value; setPlan(v); const p = plans.find((x) => x.name === v); if (!v) setDate(''); else if (p) setDate(new Date(computeExpiry(p.id, member.membership_expires_at)).toLocaleDateString('en-CA')); }}><option value="">Sin membresía</option>{options.map((o) => <option key={o} value={o}>{o}</option>)}</select></label>
+  <label className="field"><span>Vence el</span><input type="date" className="admin-date" value={date} onChange={(e) => setDate(e.target.value)} onClick={(e) => e.currentTarget.showPicker?.()} disabled={!plan} required={!!plan} /></label>
   <label className="admin-switch"><Switch checked={active} onCheckedChange={setActive} /><span>{active ? 'Cuenta activa' : 'Cuenta desactivada (no puede entrar)'}</span></label>
   <Button type="submit" variant="sport" size="lg" disabled={busy}>{busy ? 'GUARDANDO…' : 'GUARDAR CAMBIOS'}</Button>
  </form>;

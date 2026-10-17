@@ -126,3 +126,4 @@ html,body{overflow-x:clip;}
 .admin-logs{display:grid;gap:10px;}.admin-logs li{display:grid;gap:2px;border-bottom:1px solid var(--border);padding-bottom:10px;font-size:13px;}.admin-logs time{color:var(--muted-foreground);font-size:11px;}
 .field select{background:transparent;color:inherit;min-height:44px;}.field select option{background:var(--background);}
 @media(max-width:560px){.admin-ask{flex-direction:column;}}
+.admin-date{color-scheme:dark;cursor:pointer;}

@@ -50,6 +50,13 @@
       "when": 1792211823394,
       "tag": "0006_membership_logs",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792215344984,
+      "tag": "0007_transfer_owner_and_log_actions",
+      "breakpoints": true
     }
   ]
 }

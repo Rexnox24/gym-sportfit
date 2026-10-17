@@ -2,27 +2,29 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowUpRight, Check, Clock3, ShieldCheck, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PaypalButton } from '@/components/paypal-button';
+import { SimulatedPayButton } from '@/components/simulated-pay-button';
 import { pageHead, openingHours, amenities } from '@/lib/gym-data';
 import { plans, isPlanAvailable } from '@/lib/plans';
 
 export const Route = createFileRoute('/planes')({
- head: () => pageHead('Planes y precios', 'Elige tu plan en Gym Sportfit y paga al instante con PayPal: visita $70, semanal $150, mensualidad $350, trimestral $780 y promoción de fin de año.'),
+ head: () => pageHead('Planes y precios', 'Elige tu plan en Gym Sportfit y paga al instante con PayPal: semanal $150, mensualidad $350, trimestral $780, promo de fin de año y Promo Anual $3,700.'),
  component: Plans,
 });
 
 function Plans() {
- const available = plans.filter(p => isPlanAvailable(p));
+ const available = plans.filter(p => p.id !== 'visita' && isPlanAvailable(p));
  return <main className="shell">
   <div className="page-title"><div className="eyebrow">INVIERTE EN TI</div><h1>ELIGE TU <span className="text-primary">SIGUIENTE NIVEL.</span></h1><p>Paga en línea y empieza a entrenar hoy mismo.</p></div>
   <section className="rates-section" aria-label="Planes y precios">
-   <div className="plans-grid">{available.map(plan => <article key={plan.id} className={'plan-card' + (plan.highlight ? ' is-featured' : '') + (plan.id === 'promo-fin-2026' ? ' is-promo' : '')}>
+   <div className="plans-grid">{available.map(plan => <article key={plan.id} className={'plan-card' + (plan.highlight ? ' is-featured' : '') + (plan.id === 'promo-fin-2026' || plan.id === 'anual' ? ' is-promo' : '')}>
     {plan.highlight && <span className="plan-badge">{plan.highlight}</span>}
     <span className="category">{plan.period.toUpperCase()}</span>
     <h2>{plan.name}</h2>
-    <p className="plan-price"><span>$</span>{plan.price}<small>MXN</small></p>
+    <p className="plan-price"><span>$</span>{plan.price.toLocaleString('es-MX')}<small>MXN</small></p>
     <ul className="plan-features">{plan.features.map(f => <li key={f}><Check aria-hidden="true" />{f}</li>)}</ul>
-    <div className="plan-pay"><PaypalButton planId={plan.id} /></div>
+    <div className="plan-pay">{plan.onlineCheckout ? <PaypalButton planId={plan.id as 'mensualidad'} /> : <p className="plan-onsite">Contrátala directamente en recepción</p>}</div>
    </article>)}</div>
+   <SimulatedPayButton />
    <div className="payment-strip"><p><Zap aria-hidden="true" />Pago inmediato con PayPal: tarjeta de crédito, débito o saldo PayPal.</p><p><ShieldCheck aria-hidden="true" />Tu membresía se activa al instante en tu portal.</p><Button asChild variant="link"><Link to="/promociones">VER PROMOCIONES <ArrowUpRight /></Link></Button></div>
   </section>
   <section className="information-section" aria-labelledby="services-title"><div><div className="eyebrow">TU ESPACIO DE ENTRENAMIENTO</div><h2 id="services-title">TODO EN SPORTFIT.</h2></div><ul className="amenities-list">{amenities.map(item => <li key={item}>{item}</li>)}</ul></section>

@@ -127,3 +127,12 @@ html,body{overflow-x:clip;}
 .field select{background:transparent;color:inherit;min-height:44px;}.field select option{background:var(--background);}
 @media(max-width:560px){.admin-ask{flex-direction:column;}}
 .admin-date{color-scheme:dark;cursor:pointer;}
+
+/* Pago simulado (temporal) y promo anual */
+.simulate-box{display:grid;gap:.75rem;margin-top:1.5rem;padding:1.25rem;border:1px dashed var(--primary);border-radius:var(--radius-md);background:var(--secondary);}
+.promotion-poster-text{display:grid;place-content:center;gap:.5rem;min-height:320px;text-align:center;border:1px solid var(--primary);border-radius:var(--radius-md);background:var(--secondary);}
+.promotion-poster-text strong{font-family:var(--font-display);font-size:clamp(3.5rem,8vw,6rem);line-height:1;color:var(--primary);}
+.plan-onsite{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--primary);font-weight:700;}
+.admin-stats{grid-template-columns:repeat(5,minmax(0,1fr));}
+@media (max-width:1024px){.admin-stats{grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media (max-width:560px){.admin-stats{grid-template-columns:repeat(2,minmax(0,1fr));}}

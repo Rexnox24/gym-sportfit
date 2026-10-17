@@ -20,10 +20,11 @@ export const getPaypalConfig = createServerFn({ method: 'GET' }).handler(async (
  mode: process.env['PAYPAL_ENV'] === 'live' ? 'live' : 'sandbox',
 }));
 
-const planSchema = z.object({ planId: z.enum(['visita', 'semanal', 'mensualidad', 'trimestral', 'promo-fin-2026']) });
+const planSchema = z.object({ planId: z.enum(['semanal', 'mensualidad', 'trimestral', 'promo-fin-2026']) });
 
 export const createPaypalOrder = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth]).inputValidator(planSchema).handler(async ({ data, context }) => {
  const plan = plans.find(p => p.id === data.planId)!;
+ if (!plan.onlineCheckout) throw new Error('Este plan se contrata en recepción.');
  if (!isPlanAvailable(plan)) throw new Error('Esta promoción ya no está disponible.');
  const token = await paypalToken();
  const res = await fetch(`${paypalBase()}/v2/checkout/orders`, {

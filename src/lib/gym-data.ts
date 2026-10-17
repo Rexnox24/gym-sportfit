@@ -1,4 +1,4 @@
-import a1 from '@/assets/photography/gym-1-piso-uniforme.jpg';
+import a1 from '@/assets/photography/gym-1-nitida.jpg';
 import a2 from '@/assets/photography/gym-2-piso-uniforme.jpg';
 import a3 from '@/assets/photography/gym-3-piso-uniforme.jpg';
 import a4 from '@/assets/photography/gym-4-piso-uniforme.jpg';
@@ -11,14 +11,14 @@ import legPress from '@/assets/photography/prensa-piernas-piso-uniforme.jpg';
 import squat from '@/assets/photography/sentadilla-guiada-piso-uniforme.jpg';
 import smith from '@/assets/photography/maquina-smith-piso-uniforme.jpg';
 import calves from '@/assets/photography/elevacion-talones-final.jpg';
-import promotionPoster from '@/assets/photography/promocion-fin-2026-piso-uniforme.jpg';
+import promotionPoster from '@/assets/photography/promocion-fin-anio-piso-uniforme.jpg';
 export const rates = [
  {name:'Mensualidad',price:350,period:'Un mes'},
  {name:'Semanal',price:150,period:'Una semana'},
- {name:'Visita',price:70,period:'Una visita'},
- {name:'Trimestral',price:780,period:'Tres meses'},
+  {name:'Trimestral',price:780,period:'Tres meses'},
+{name:'Promo Anual',price:3700,period:'Doce meses'},
 ];
-export const promotions = [{title:'Cierra este 2026 con todo',price:750,period:'Octubre · Noviembre · Diciembre 2026',image:promotionPoster,description:'Tres meses por $750. Consulta en el gimnasio las condiciones y la disponibilidad de esta promoción.'}];
+export const promotions = [{title:'Promo Anual',price:3700,period:'12 meses de acceso',image:null as string|null,description:'Un año completo de pesas, cardio y vestidores al mejor costo por mes. Se contrata directamente en recepción con la administración.'},{title:'Cierra este 2026 con todo',price:750,period:'Octubre · Noviembre · Diciembre 2026',image:promotionPoster as string|null,description:'Tres meses por $750. Consulta en el gimnasio las condiciones y la disponibilidad de esta promoción.'}];
 export const openingHours = [
  {days:'Lunes a viernes',sessions:[{label:'Matutino',time:'6:00 a.m. – 1:00 p.m.'},{label:'Vespertino',time:'4:00 p.m. – 10:00 p.m.'}]},
  {days:'Sábados',sessions:[{label:'',time:'8:00 a.m. – 1:00 p.m.'}]},

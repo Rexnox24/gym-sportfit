@@ -37,7 +37,7 @@ export function PaypalButton({ planId, onPaid }: PaypalButtonProps) {
    if (cancelled || !ref.current) return;
    buttons = paypal.Buttons({
     style: { layout: 'horizontal', color: 'gold', shape: 'rect', label: 'pay', tagline: false, height: 45 },
-    createOrder: async () => (await createPaypalOrder({ data: { planId } })).orderId,
+    createOrder: async () => (await createPaypalOrder({ data: { planId: planId as 'mensualidad' } })).orderId,
     onApprove: async ({ orderID }: { orderID: string }) => {
      try { await capturePaypalOrder({ data: { orderId: orderID } }); await client.invalidateQueries({ queryKey: ['member-profile'] }); toast.success('¡Pago completado! Tu membresía ya está activa.'); onPaid?.(); }
      catch (e) { toast.error(e instanceof Error ? e.message : 'No pudimos confirmar tu pago.'); }

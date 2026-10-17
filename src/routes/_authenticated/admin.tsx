@@ -41,6 +41,7 @@ function Admin() {
  const [showLogs, setShowLogs] = useState(false);
  const [cashFor, setCashFor] = useState<string | null>(null);
  const [daysFor, setDaysFor] = useState<string | null>(null);
+ const [delFor, setDelFor] = useState<string | null>(null);
 
  const rows = useMemo(() => (list.data?.members ?? []).map((m) => ({ ...m, days: effectiveDays(m.membership, m.membership_expires_at) })), [list.data]);
  const counts = {
@@ -121,7 +122,7 @@ function Admin() {
       <Button size="sm" variant="outline" onClick={() => setDaysFor(r.id)}><CalendarPlus />+30 días</Button>
       <Button size="sm" variant="outline" onClick={() => setCashFor(r.id)}><Banknote />Pago en efectivo</Button>
       <Button size="sm" variant="outline" onClick={() => run(updFn({ data: { userId: r.id, displayName: r.display_name, membership: r.membership, expiresAt: r.membership_expires_at ? new Date(r.membership_expires_at).toISOString() : null, active: !r.account_active, paymentStatus: r.payment_status as PayStatus } }), r.account_active ? 'Cuenta desactivada' : 'Cuenta reactivada')}><Power />{r.account_active ? 'Desactivar' : 'Activar'}</Button>
-      <Button size="sm" variant="destructive" onClick={() => { if (confirm('¿Dar de baja definitiva y eliminar la cuenta de este cliente? No se puede deshacer.')) run(delFn({ data: { userId: r.id } }), 'Cliente dado de baja'); }}><Trash2 />Baja definitiva</Button>
+      <Button size="sm" variant="destructive" onClick={() => setDelFor(r.id)}><Trash2 />Baja definitiva</Button>
      </div>
     </li>;
    })}</ul>}
@@ -136,6 +137,9 @@ function Admin() {
   </Dialog>
   <Dialog open={!!daysFor} onOpenChange={(o) => !o && setDaysFor(null)}>
    <DialogContent>{daysFor && <ConfirmDays member={rows.find((r) => r.id === daysFor)!} onCancel={() => setDaysFor(null)} onConfirm={() => { const m = rows.find((r) => r.id === daysFor)!; setDaysFor(null); addDays(m, 30); }} />}</DialogContent>
+  </Dialog>
+  <Dialog open={!!delFor} onOpenChange={(o) => !o && setDelFor(null)}>
+   <DialogContent>{delFor && <ConfirmDelete member={rows.find((r) => r.id === delFor)!} onCancel={() => setDelFor(null)} onConfirm={() => { const m = rows.find((r) => r.id === delFor)!; setDelFor(null); run(delFn({ data: { userId: m.id } }), 'Cliente dado de baja'); }} />}</DialogContent>
   </Dialog>
  </main>;
 }
@@ -217,8 +221,20 @@ function ConfirmDays({ member, onCancel, onConfirm }: { member: Member; onCancel
 			</div>}
 		{!member.membership && !isCourtesy(member.membership) && <p className="admin-confirm-note">No tiene membresía: se le asignará «Mensualidad» con 30 días.</p>}
 		<div className="admin-confirm-actions">
-			<Button type="button" variant="outline" size="lg" onClick={onCancel}>CANCELAR</Button>
+		<Button type="button" variant="outline" size="lg" onClick={onCancel}>CANCELAR</Button>
 			<Button type="submit" variant="sport" size="lg">SÍ, SUMAR 30 DÍAS</Button>
+		</div>
+	</form>;
+}
+
+function ConfirmDelete({ member, onCancel, onConfirm }: { member: Member; onCancel: () => void; onConfirm: () => void }) {
+	return <form onSubmit={(e) => { e.preventDefault(); onConfirm(); }} className="grid gap-4">
+		<DialogHeader><DialogTitle>DAR DE BAJA DEFINITIVA</DialogTitle><DialogDescription>{member.display_name || member.email} · {member.email}</DialogDescription></DialogHeader>
+		<p className="section-text">Se eliminará la cuenta de este cliente con todo su historial de membresías y pagos. <strong>No se puede deshacer.</strong></p>
+		{member.membership && <p className="admin-confirm-note">Actualmente tiene «{member.membership}»{isCourtesy(member.membership) ? ' (membresía de cortesía)' : ''}. Si solo quieres bloquearle el acceso, usa el botón «Desactivar».</p>}
+		<div className="admin-confirm-actions">
+			<Button type="button" variant="outline" size="lg" onClick={onCancel}>CANCELAR</Button>
+			<Button type="submit" variant="destructive" size="lg">SÍ, DAR DE BAJA</Button>
 		</div>
 	</form>;
 }

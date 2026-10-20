@@ -7,18 +7,16 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { simulatePayment } from '@/lib/simulate.functions';
-import { onlinePlans, type PlanId } from '@/lib/plans';
+import { portalPlans, type PortalPlanId } from '@/lib/plans';
 
-type OnlineId = Exclude<PlanId, 'visita' | 'anual' | 'cortesia'>;
-
-/** TEMPORAL: botón de pago simulado (modo prueba). */
-export function SimulatedPayButton({ defaultPlan = 'mensualidad' }: { defaultPlan?: OnlineId }) {
+/** TEMPORAL: botón de pago simulado (modo prueba). Si recibe planId, usa ese plan (sin selector). */
+export function SimulatedPayButton({ planId: fixed }: { planId?: PortalPlanId }) {
  const fn = useServerFn(simulatePayment);
  const qc = useQueryClient();
  const session = useQuery({ queryKey: ['session-user'], queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null });
- const [planId, setPlanId] = useState<OnlineId>(defaultPlan);
+ const [own, setOwn] = useState<PortalPlanId>('mensualidad');
+ const planId = fixed ?? own;
  const [busy, setBusy] = useState(false);
- const options = onlinePlans();
  if (!session.data) return <div className="simulate-box"><span className="category">MODO PRUEBA</span><Button asChild variant="outline"><Link to="/auth">INICIA SESIÓN PARA SIMULAR EL PAGO</Link></Button></div>;
  async function pay() {
   setBusy(true);
@@ -31,9 +29,9 @@ export function SimulatedPayButton({ defaultPlan = 'mensualidad' }: { defaultPla
  }
  return <div className="simulate-box">
   <span className="category"><FlaskConical aria-hidden="true" className="inline size-3" /> MODO PRUEBA · SIN COBRO REAL</span>
-  <label className="field"><span>Elige tu membresía</span>
-   <select value={planId} onChange={(e) => setPlanId(e.target.value as OnlineId)}>{options.map((p) => <option key={p.id} value={p.id}>{p.name} · ${p.price}</option>)}</select>
-  </label>
-  <Button type="button" variant="sport" size="lg" onClick={pay} disabled={busy}>{busy ? 'PROCESANDO…' : 'SIMULAR PAGO (MODO PRUEBA)'}</Button>
+  {!fixed && <label className="field"><span>Elige tu membresía</span>
+   <select value={own} onChange={(e) => setOwn(e.target.value as PortalPlanId)}>{portalPlans().filter(p => p.onlineCheckout).map((p) => <option key={p.id} value={p.id}>{p.name} · ${p.price}</option>)}</select>
+  </label>}
+  <Button type="button" variant="outline" size="lg" onClick={pay} disabled={busy}>{busy ? 'PROCESANDO…' : 'SIMULAR PAGO (MODO PRUEBA)'}</Button>
  </div>;
 }

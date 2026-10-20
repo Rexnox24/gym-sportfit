@@ -98,7 +98,7 @@ function Admin() {
    <div className="profile-stat is-danger"><span className="category">VENCIDOS</span><h3>{counts.vencidos}</h3></div>
    <div className="profile-stat is-danger"><span className="category">SIN PAGO</span><h3>{counts.sinPago}</h3></div>
    <div className="profile-stat"><span className="category">DESACTIVADOS</span><h3>{counts.desactivados}</h3></div>
-   <div className="profile-stat"><span className="category">INGRESOS DEL MES</span><h3>${(list.data?.revenue ?? 0).toLocaleString('es-MX')}</h3></div>
+   <div className="profile-stat"><span className="category">INGRESOS DEL MES</span><h3>${(list.data?.revenue ?? 0).toLocaleString('es-MX')}</h3><p className="revenue-split"><span>Efectivo (recepción): <strong>${(list.data?.revenueCash ?? 0).toLocaleString('es-MX')}</strong></span><span>Tarjeta / En línea: <strong>${(list.data?.revenueOnline ?? 0).toLocaleString('es-MX')}</strong></span></p></div>
   </div>
   <form className="admin-ask" onSubmit={askAi}>
    <label className="field admin-search"><span className="sr-only">Pregunta sobre tus socios</span><Sparkles aria-hidden="true" className="size-4 text-primary" /><input placeholder="Pregunta: «vencidos hace más de 15 días»" value={ask} onChange={(e) => setAsk(e.target.value)} maxLength={300} /></label>

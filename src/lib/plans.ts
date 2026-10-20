@@ -67,3 +67,19 @@ export const isCourtesy = (membership: string | null) => membership === COURTESY
 export function effectiveDays(membership: string | null, expiry: string | null, now = new Date()) {
  return isCourtesy(membership) ? 9999 : daysUntil(expiry, now);
 }
+
+/** Planes que el socio puede elegir en su portal: los de línea + la Promo Anual. */
+export const portalPlans = (now = new Date()) => [...onlinePlans(now), ...plans.filter(p => p.id === 'anual')];
+export type PortalPlanId = 'semanal' | 'mensualidad' | 'trimestral' | 'promo-fin-2026' | 'anual';
+export const PORTAL_PLAN_IDS = ['semanal', 'mensualidad', 'trimestral', 'promo-fin-2026', 'anual'] as const;
+/** Valida una tarjeta de prueba: 16 dígitos, MM/AA vigente, CVV de 3 dígitos. */
+export function validateTestCard(c: { number: string; exp: string; cvv: string; holder: string }, now = new Date()) {
+ const n = c.number.replace(/\s/g, '');
+ if (!/^\d{16}$/.test(n)) return 'El número de tarjeta debe tener 16 dígitos.';
+ const m = /^(\d{2})\/(\d{2})$/.exec(c.exp.trim());
+ if (!m || +m[1]! < 1 || +m[1]! > 12) return 'La fecha debe tener el formato MM/AA.';
+ if (new Date(2000 + +m[2]!, +m[1]!, 0, 23, 59, 59) < now) return 'La tarjeta está vencida.';
+ if (!/^\d{3}$/.test(c.cvv)) return 'El CVV debe tener 3 dígitos.';
+ if (c.holder.trim().length < 3) return 'Escribe el nombre del titular.';
+ return null;
+}

@@ -26,9 +26,11 @@ export const listMembers = createServerFn({ method: 'GET' }).middleware([require
   if (data.users.length < 1000) break;
  }
  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
- const { data: pays } = await context.supabase.from('payments').select('amount').gte('created_at', monthStart.toISOString());
+ const { data: pays } = await context.supabase.from('payments').select('amount,method').gte('created_at', monthStart.toISOString());
  const revenue = (pays ?? []).reduce((s: number, p: { amount: number }) => s + Number(p.amount), 0);
- return { revenue, members: (profiles ?? []).map((p: any) => ({ ...p, email: emails.get(p.id) ?? '' })) as Array<{ id: string; display_name: string; phone: string | null; membership: string | null; payment_status: string; membership_expires_at: string | null; created_at: string; account_active: boolean; email: string }> };
+ const revenueCash = (pays ?? []).filter((p: any) => p.method === 'efectivo').reduce((s: number, p: any) => s + Number(p.amount), 0);
+ const revenueOnline = revenue - revenueCash;
+ return { revenue, revenueCash, revenueOnline, members: (profiles ?? []).map((p: any) => ({ ...p, email: emails.get(p.id) ?? '' })) as Array<{ id: string; display_name: string; phone: string | null; membership: string | null; payment_status: string; membership_expires_at: string | null; created_at: string; account_active: boolean; email: string }> };
 });
 
 async function setBan(userId: string, active: boolean) {

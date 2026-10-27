@@ -1,3 +1,4 @@
+import { LocationLine } from '@/components/location-map';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowUpRight, Check, Clock3, ShieldCheck, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ export const Route = createFileRoute('/planes')({
 function Plans() {
  const available = plans.filter(p => !p.ownerOnly && isPlanAvailable(p));
  return <main className="shell">
-  <div className="page-title"><div className="eyebrow">INVIERTE EN TI</div><h1>ELIGE TU <span className="text-primary">SIGUIENTE NIVEL.</span></h1><p>Paga en línea y empieza a entrenar hoy mismo.</p></div>
+  <div className="page-title"><div className="eyebrow">INVIERTE EN TI</div><h1>ELIGE TU <span className="text-primary">SIGUIENTE NIVEL.</span></h1><p>Paga en línea y empieza a entrenar hoy mismo.</p><LocationLine/></div>
   <section className="rates-section" aria-label="Planes y precios">
    <div className="plans-grid">{available.map(plan => <article key={plan.id} className={'plan-card' + (plan.highlight ? ' is-featured' : '') + (plan.id === 'promo-fin-2026' || plan.id === 'anual' ? ' is-promo' : '')}>
     {plan.highlight && <span className="plan-badge">{plan.highlight}</span>}

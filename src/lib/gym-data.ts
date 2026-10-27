@@ -41,4 +41,5 @@ export const equipment = [
 ];
 export function pageHead(title:string,description:string){return {meta:[{title:`${title} | Gym Sportfit`},{name:'description',content:description},{property:'og:title',content:`${title} | Gym Sportfit`},{property:'og:description',content:description},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]};}
 const ADDRESS='Eje 1, Lomas de Cartagena, 54958 Tultitlán, Méx.';
-export const location={name:'Gym Sport Fit',address:ADDRESS,short:'Eje 1, Lomas de Cartagena',mapsUrl:'https://maps.app.goo.gl/TJejdNyuppxrYAXi6',directionsUrl:`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent('Gym Sport Fit, '+ADDRESS)}`,query:'Gym Sport Fit, Eje 1, Lomas de Cartagena, 54958 Tultitlán, México'};
+const PLACE_ID='ChIJu61WOhD20YUROgrqEE8n6BA';
+export const location={name:'Gym Sport Fit',address:ADDRESS,short:'Eje 1, Lomas de Cartagena',placeId:PLACE_ID,mapsUrl:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Gym Sport Fit')}&query_place_id=${PLACE_ID}`,directionsUrl:`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent('Gym Sport Fit')}&destination_place_id=${PLACE_ID}`,query:`place_id:${PLACE_ID}`};

@@ -12,6 +12,8 @@ import squat from '@/assets/photography/sentadilla-guiada-piso-uniforme.jpg';
 import smith from '@/assets/photography/maquina-smith-piso-uniforme.jpg';
 import calves from '@/assets/photography/elevacion-talones-final.jpg';
 import promotionPoster from '@/assets/photography/promocion-fin-anio-piso-uniforme.jpg';
+import heroImg from '@/assets/photography/gym-portada-retocada.jpg';
+export const heroPhoto = heroImg;
 export const rates = [
  {name:'Mensualidad',price:350,period:'Un mes'},
  {name:'Semanal',price:150,period:'Una semana'},

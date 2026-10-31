@@ -1,4 +1,5 @@
 # Gym Sportfit
+- [ ] Conectar el WhatsApp Business del dueño al entregar la página: espera su autorización y verificación con Meta.
 - [x] Corregir los pisos diferentes usando las losetas de Estaciones de poleas como referencia.
 - [x] Incorporar Instagram, Facebook y TikTok en el pie y menú móvil; probar los enlaces.
 - [x] Corregir elementos encimados y comprobar celular, tablet, laptop y PC.

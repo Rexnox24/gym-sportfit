@@ -3,7 +3,7 @@ import { Check, Copy, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { bankAccount } from '@/lib/gym-data';
 
-export interface BankTransferProps { amount?: number }
+export interface BankTransferProps { amount?: number | undefined }
 
 /** Datos bancarios oficiales para pagar por transferencia o depósito. */
 export function BankTransfer({ amount }: BankTransferProps) {

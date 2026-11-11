@@ -23,7 +23,7 @@ export const plans: PlanOption[] = [
  { id: 'semanal', name: 'Semanal', price: 150, period: '7 días', onlineCheckout: true, features: ['Acceso durante 7 días', 'Pesas y cardio', 'Vestidores y sanitario'] },
  { id: 'mensualidad', name: 'Mensualidad', price: 350, period: '1 mes', highlight: 'MÁS POPULAR', onlineCheckout: true, features: ['Acceso durante 1 mes', 'Pesas y cardio', 'Vestidores y sanitario'] },
  { id: 'trimestral', name: 'Trimestral', price: 780, period: '3 meses', onlineCheckout: true, features: ['Acceso durante 3 meses', 'Pesas y cardio', 'Vestidores y sanitario'] },
- { id: 'anual', name: 'Promo Anual', price: 3700, period: '12 meses', highlight: 'MEJOR PRECIO', onlineCheckout: false, features: ['12 meses de acceso', 'Pesas, cardio y vestidores', 'El mejor costo por mes', 'Contrátala en recepción'] },
+ { id: 'anual', name: 'Promo Anual', price: 3600, period: '12 meses', highlight: 'MEJOR PRECIO', onlineCheckout: false, features: ['12 meses de acceso', 'Pesas, cardio y vestidores', 'El mejor costo por mes', 'Contrátala en recepción'] },
 ];
 
 export const onlinePlans = (now = new Date()) => plans.filter(p => p.onlineCheckout && isPlanAvailable(p, now));

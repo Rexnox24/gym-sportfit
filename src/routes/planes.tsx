@@ -8,7 +8,7 @@ import { plans, isPlanAvailable } from '@/lib/plans';
 
 export const Route = createFileRoute('/planes')({
  staticData: { sitemap: true },
- head: () => pageHead('Planes y precios', 'Elige tu plan en Gym Sportfit y paga por transferencia BBVA o en recepción: semanal $150, mensualidad $350, trimestral $780, promo de fin de año y Promo Anual $3,700.'),
+ head: () => pageHead('Planes y precios', 'Elige tu plan en Gym Sportfit y paga por transferencia BBVA o en recepción: semanal $150, mensualidad $350, trimestral $780, y Promo Anual $3,600.'),
  component: Plans,
 });
 

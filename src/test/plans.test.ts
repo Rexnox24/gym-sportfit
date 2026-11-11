@@ -26,3 +26,6 @@ describe('portal, tarjeta y registro', () => {
  it('contraseña débil da mensaje específico', () => expect(authErrorMessage({ code: 'weak_password', message: 'x' })).toContain('muy común'));
  it('correo repetido da mensaje específico', () => expect(authErrorMessage({ message: 'User already registered' })).toContain('ya está registrado'));
 });
+describe('promociones vigentes', () => {
+ it('ya no existe la promo de fin de año', () => expect(plans.map(p => p.id)).not.toContain('promo-fin-2026'));
+});

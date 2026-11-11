@@ -20,7 +20,7 @@ export const getPaypalConfig = createServerFn({ method: 'GET' }).handler(async (
  mode: process.env['PAYPAL_ENV'] === 'live' ? 'live' : 'sandbox',
 }));
 
-const planSchema = z.object({ planId: z.enum(['semanal', 'mensualidad', 'trimestral', 'promo-fin-2026']) });
+const planSchema = z.object({ planId: z.enum(['semanal', 'mensualidad', 'trimestral']) });
 
 export const createPaypalOrder = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth]).inputValidator(planSchema).handler(async ({ data, context }) => {
  const plan = plans.find(p => p.id === data.planId)!;

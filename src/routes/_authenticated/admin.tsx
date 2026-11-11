@@ -20,7 +20,7 @@ export const Route = createFileRoute('/_authenticated/admin')({
 
 type Filter = 'todos' | 'activos' | 'por-vencer' | 'vencidos' | 'sin-pago' | 'inactivos';
 const fmt = (d: string) => new Date(d).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
-const actionLabel: Record<string, string> = { alta: 'Alta', activacion: 'Activación', renovacion: 'Renovación', cambio_plan: 'Cambio de plan', suspension: 'Suspensión', reactivacion: 'Reactivación', desactivacion: 'Desactivación', pago_paypal: 'Pago con PayPal', pago_prueba: 'Pago simulado (prueba)', pago_manual: 'Pago registrado', pago_pendiente: 'Pago pendiente', pago_efectivo: 'Pago en efectivo', ajuste_vencimiento: 'Ajuste de vencimiento' };
+const actionLabel: Record<string, string> = { alta: 'Alta', activacion: 'Activación', renovacion: 'Renovación', cambio_plan: 'Cambio de plan', suspension: 'Suspensión', reactivacion: 'Reactivación', desactivacion: 'Desactivación', pago_paypal: 'Pago con PayPal', pago_prueba: 'Pago simulado (prueba)', pago_manual: 'Pago registrado', pago_pendiente: 'Pago pendiente', pago_efectivo: 'Pago en efectivo', pago_transferencia: 'Pago por transferencia', ajuste_vencimiento: 'Ajuste de vencimiento' };
 
 function Admin() {
  const isAdminFn = useServerFn(checkIsAdmin);
@@ -98,7 +98,7 @@ function Admin() {
    <div className="profile-stat is-danger"><span className="category">VENCIDOS</span><h3>{counts.vencidos}</h3></div>
    <div className="profile-stat is-danger"><span className="category">SIN PAGO</span><h3>{counts.sinPago}</h3></div>
    <div className="profile-stat"><span className="category">DESACTIVADOS</span><h3>{counts.desactivados}</h3></div>
-   <div className="profile-stat"><span className="category">INGRESOS DEL MES</span><h3>${(list.data?.revenue ?? 0).toLocaleString('es-MX')}</h3><p className="revenue-split"><span>Efectivo (recepción): <strong>${(list.data?.revenueCash ?? 0).toLocaleString('es-MX')}</strong></span><span>Tarjeta / En línea: <strong>${(list.data?.revenueOnline ?? 0).toLocaleString('es-MX')}</strong></span></p></div>
+   <div className="profile-stat"><span className="category">INGRESOS DEL MES</span><h3>${(list.data?.revenue ?? 0).toLocaleString('es-MX')}</h3><p className="revenue-split"><span>Efectivo (recepción): <strong>${(list.data?.revenueCash ?? 0).toLocaleString('es-MX')}</strong></span><span>Transferencia BBVA: <strong>${(list.data?.revenueTransfer ?? 0).toLocaleString('es-MX')}</strong></span>{(list.data?.revenueOnline ?? 0) > 0 && <span>En línea: <strong>${(list.data?.revenueOnline ?? 0).toLocaleString('es-MX')}</strong></span>}</p></div>
   </div>
   <form className="admin-ask" onSubmit={askAi}>
    <label className="field admin-search"><span className="sr-only">Pregunta sobre tus socios</span><Sparkles aria-hidden="true" className="size-4 text-primary" /><input placeholder="Pregunta: «vencidos hace más de 15 días»" value={ask} onChange={(e) => setAsk(e.target.value)} maxLength={300} /></label>
@@ -120,7 +120,7 @@ function Admin() {
      <div className="admin-actions">
       <Button size="sm" variant="sport" onClick={() => setEditing(r.id)}><Pencil />Editar</Button>
       <Button size="sm" variant="outline" onClick={() => setDaysFor(r.id)}><CalendarPlus />+30 días</Button>
-      <Button size="sm" variant="outline" onClick={() => setCashFor(r.id)}><Banknote />Pago en efectivo</Button>
+      <Button size="sm" variant="outline" onClick={() => setCashFor(r.id)}><Banknote />Registrar pago</Button>
       <Button size="sm" variant="outline" onClick={() => run(updFn({ data: { userId: r.id, displayName: r.display_name, membership: r.membership, expiresAt: r.membership_expires_at ? new Date(r.membership_expires_at).toISOString() : null, active: !r.account_active, paymentStatus: r.payment_status as PayStatus } }), r.account_active ? 'Cuenta desactivada' : 'Cuenta reactivada')}><Power />{r.account_active ? 'Desactivar' : 'Activar'}</Button>
       <Button size="sm" variant="destructive" onClick={() => setDelFor(r.id)}><Trash2 />Baja definitiva</Button>
      </div>
@@ -179,16 +179,18 @@ function CashForm({ member, onDone, run }: { member: Member; onDone: () => void;
  const fn = useServerFn(recordCashPayment);
  const cashPlans = plans.filter((p) => !p.ownerOnly);
  const [planId, setPlanId] = useState<PlanId>('mensualidad');
+ const [method, setMethod] = useState<'efectivo' | 'transferencia'>('efectivo');
  const [busy, setBusy] = useState(false);
  const sel = cashPlans.find((p) => p.id === planId)!;
  async function save(e: FormEvent) {
   e.preventDefault(); setBusy(true);
-  const ok = await run(fn({ data: { userId: member.id, planId: planId as 'mensualidad' } }), `Pago de $${sel.price.toLocaleString('es-MX')} registrado`);
+  const ok = await run(fn({ data: { userId: member.id, planId: planId as 'mensualidad', method } }), `Pago de $${sel.price.toLocaleString('es-MX')} registrado`);
   setBusy(false); if (ok) onDone();
  }
  return <form onSubmit={save} className="grid gap-4">
-  <DialogHeader><DialogTitle>REGISTRAR PAGO EN EFECTIVO</DialogTitle><DialogDescription>{member.display_name || member.email} · se suma a Ingresos del mes.</DialogDescription></DialogHeader>
+  <DialogHeader><DialogTitle>REGISTRAR PAGO</DialogTitle><DialogDescription>{member.display_name || member.email} · se suma a Ingresos del mes.</DialogDescription></DialogHeader>
   <label className="field"><span>Plan pagado</span><select value={planId} onChange={(e) => setPlanId(e.target.value as PlanId)}>{cashPlans.map((p) => <option key={p.id} value={p.id}>{p.name} — ${p.price.toLocaleString('es-MX')}</option>)}</select></label>
+  <label className="field"><span>Forma de pago</span><select value={method} onChange={(e) => setMethod(e.target.value as 'efectivo' | 'transferencia')}><option value="efectivo">Efectivo en recepción</option><option value="transferencia">Transferencia BBVA</option></select></label>
   <Button type="submit" variant="sport" size="lg" disabled={busy}>{busy ? 'REGISTRANDO…' : `REGISTRAR $${sel.price.toLocaleString('es-MX')}`}</Button>
  </form>;
 }

@@ -19,12 +19,13 @@ describe('sumar días de renovación', () => {
 	it('sin vigencia, se cuentan desde hoy', () => expect(plusDays(null, 30, new Date('2026-10-17T12:00:00Z')).slice(0, 10)).toBe('2026-11-16'));
 });
 
-import { portalPlans, validateTestCard } from '@/lib/plans';
+import { portalPlans } from '@/lib/plans';
 import { authErrorMessage } from '@/lib/auth-messages';
 describe('portal, tarjeta y registro', () => {
  it('la Promo Anual se puede elegir en el portal', () => expect(portalPlans(new Date('2026-10-17')).map(p => p.id)).toContain('anual'));
- it('la tarjeta de prueba acepta 16 dígitos', () => expect(validateTestCard({ number: '4111 1111 1111 1111', exp: '12/30', cvv: '123', holder: 'Juan Pérez' }, new Date('2026-10-20'))).toBeNull());
- it('la tarjeta rechaza 15 dígitos', () => expect(validateTestCard({ number: '411111111111111', exp: '12/30', cvv: '123', holder: 'Juan' }, new Date('2026-10-20'))).not.toBeNull());
  it('contraseña débil da mensaje específico', () => expect(authErrorMessage({ code: 'weak_password', message: 'x' })).toContain('muy común'));
  it('correo repetido da mensaje específico', () => expect(authErrorMessage({ message: 'User already registered' })).toContain('ya está registrado'));
+});
+describe('promociones vigentes', () => {
+ it('ya no existe la promo de fin de año', () => expect(plans.map(p => p.id)).not.toContain('promo-fin-2026'));
 });

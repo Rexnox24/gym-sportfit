@@ -11,7 +11,6 @@ import legPress from '@/assets/photography/prensa-piernas-piso-uniforme.jpg';
 import squat from '@/assets/photography/sentadilla-guiada-piso-uniforme.jpg';
 import smith from '@/assets/photography/maquina-smith-piso-uniforme.jpg';
 import calves from '@/assets/photography/elevacion-talones-final.jpg';
-import promotionPoster from '@/assets/photography/promocion-fin-anio-piso-uniforme.jpg';
 import heroImg from '@/assets/photography/gym-portada-retocada.jpg';
 export const heroPhoto = heroImg;
 export const rates = [
@@ -20,7 +19,7 @@ export const rates = [
   {name:'Trimestral',price:780,period:'Tres meses'},
 {name:'Promo Anual',price:3700,period:'Doce meses'},
 ];
-export const promotions = [{title:'Promo Anual',price:3700,period:'12 meses de acceso',image:null as string|null,description:'Un año completo de pesas, cardio y vestidores al mejor costo por mes. Se contrata directamente en recepción con la administración.'},{title:'Cierra este 2026 con todo',price:750,period:'Octubre · Noviembre · Diciembre 2026',image:promotionPoster as string|null,description:'Tres meses por $750. Consulta en el gimnasio las condiciones y la disponibilidad de esta promoción.'}];
+export const promotions = [{title:'Promo Anual',price:3700,period:'12 meses de acceso',image:null as string|null,description:'Un año completo de pesas, cardio y vestidores al mejor costo por mes. Se contrata directamente en recepción con la administración.'}];
 export const openingHours = [
  {days:'Lunes a viernes',sessions:[{label:'Matutino',time:'6:00 a.m. – 1:00 p.m.'},{label:'Vespertino',time:'4:00 p.m. – 10:00 p.m.'}]},
  {days:'Sábados',sessions:[{label:'',time:'8:00 a.m. – 1:00 p.m.'}]},
@@ -44,3 +43,4 @@ const ADDRESS='Eje 1, Lomas de Cartagena, 54958 Tultitlán, Méx.';
 const PLACE_ID='ChIJu61WOhD20YUROgrqEE8n6BA';
 export const location={name:'Gym Sport Fit',address:ADDRESS,short:'Eje 1, Lomas de Cartagena',placeId:PLACE_ID,mapsUrl:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Gym Sport Fit')}&query_place_id=${PLACE_ID}`,directionsUrl:`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent('Gym Sport Fit')}&destination_place_id=${PLACE_ID}`,query:`place_id:${PLACE_ID}`};
 export const bankAccount={bank:'BBVA',number:'4152313501221480',formatted:'4152 3135 0122 1480',holder:'Julio Antonio Mayer'};
+export const receiptWhatsApp={number:'525539242569',formatted:'55 3924 2569'};

@@ -29,8 +29,9 @@ export const listMembers = createServerFn({ method: 'GET' }).middleware([require
  const { data: pays } = await context.supabase.from('payments').select('amount,method').gte('created_at', monthStart.toISOString());
  const revenue = (pays ?? []).reduce((s: number, p: { amount: number }) => s + Number(p.amount), 0);
  const revenueCash = (pays ?? []).filter((p: any) => p.method === 'efectivo').reduce((s: number, p: any) => s + Number(p.amount), 0);
- const revenueOnline = revenue - revenueCash;
- return { revenue, revenueCash, revenueOnline, members: (profiles ?? []).map((p: any) => ({ ...p, email: emails.get(p.id) ?? '' })) as Array<{ id: string; display_name: string; phone: string | null; membership: string | null; payment_status: string; membership_expires_at: string | null; created_at: string; account_active: boolean; email: string }> };
+ const revenueTransfer = (pays ?? []).filter((p: any) => p.method === 'transferencia').reduce((s: number, p: any) => s + Number(p.amount), 0);
+ const revenueOnline = revenue - revenueCash - revenueTransfer;
+ return { revenue, revenueCash, revenueTransfer, revenueOnline, members: (profiles ?? []).map((p: any) => ({ ...p, email: emails.get(p.id) ?? '' })) as Array<{ id: string; display_name: string; phone: string | null; membership: string | null; payment_status: string; membership_expires_at: string | null; created_at: string; account_active: boolean; email: string }> };
 });
 
 async function setBan(userId: string, active: boolean) {
@@ -73,7 +74,7 @@ export const updateMember = createServerFn({ method: 'POST' }).middleware([requi
 
 /** Pago en efectivo en recepción: registra el ingreso y extiende la membresía. */
 export const recordCashPayment = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
- .inputValidator(z.object({ userId: z.string().uuid(), planId: z.enum(['visita', 'semanal', 'mensualidad', 'trimestral', 'promo-fin-2026', 'anual']) }))
+ .inputValidator(z.object({ userId: z.string().uuid(), planId: z.enum(['visita', 'semanal', 'mensualidad', 'trimestral', 'anual']), method: z.enum(['efectivo', 'transferencia']).default('efectivo') }))
  .handler(async ({ data, context }) => {
   await assertAdmin(context);
   const { plans, computeExpiry } = await import('./plans');
@@ -81,7 +82,7 @@ export const recordCashPayment = createServerFn({ method: 'POST' }).middleware([
   const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
   const { data: prev } = await supabaseAdmin.from('profiles').select('membership,membership_expires_at').eq('id', data.userId).single();
   if (!prev) throw new Error('No encontramos al cliente.');
-  const { error: payErr } = await supabaseAdmin.from('payments').insert({ user_id: data.userId, plan: plan.name, amount: plan.price, currency: 'MXN', paypal_order_id: `efectivo-${crypto.randomUUID()}`, status: 'completed', method: 'efectivo' });
+  const { error: payErr } = await supabaseAdmin.from('payments').insert({ user_id: data.userId, plan: plan.name, amount: plan.price, currency: 'MXN', paypal_order_id: `${data.method}-${crypto.randomUUID()}`, status: 'completed', method: data.method });
   if (payErr) throw new Error('No pudimos registrar el pago.');
   const expiresAt = computeExpiry(plan.id, prev.membership === plan.name ? prev.membership_expires_at : null);
   const { error } = await supabaseAdmin.from('profiles').update({ membership: plan.name, membership_expires_at: expiresAt, payment_status: 'manual' }).eq('id', data.userId);

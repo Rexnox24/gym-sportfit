@@ -166,3 +166,13 @@ html,body{overflow-x:clip;}
 .location-line a{color:var(--primary);font-weight:700}
 .footer-address{display:inline-flex;align-items:center;gap:.35rem}
 .bank-box{border:1px solid var(--primary);border-radius:var(--radius-md);background:var(--secondary);padding:24px;display:grid;gap:16px;margin-top:18px;}.bank-box .eyebrow{display:flex;align-items:center;gap:8px;}.bank-data{display:grid;gap:10px;margin:0;}.bank-data div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);padding-bottom:8px;font-size:12px;}.bank-data dt{color:var(--muted-foreground);}.bank-data dd{margin:0;font-weight:700;}.bank-number{font-family:var(--font-display);font-size:22px;letter-spacing:1px;}
+
+.payments-history { margin-block: 2rem; padding: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--secondary); box-shadow: var(--shadow-card); }
+.payments-history-top { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: end; margin-bottom: 1rem; }
+.payments-history-top h2 { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 2rem; line-height: 1; }
+.payments-history-tools { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.payments-history-tools select { min-height: 44px; }
+.payments-table-wrap { overflow-x: auto; margin-top: 1rem; }
+.payments-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.payments-table th { text-align: left; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted-foreground); padding: .6rem; border-bottom: 1px solid var(--border); }
+.payments-table td { padding: .6rem; border-bottom: 1px solid var(--border); white-space: nowrap; }

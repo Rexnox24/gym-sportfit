@@ -165,3 +165,4 @@ html,body{overflow-x:clip;}
 .location-line svg{width:1rem;height:1rem;color:var(--primary)}
 .location-line a{color:var(--primary);font-weight:700}
 .footer-address{display:inline-flex;align-items:center;gap:.35rem}
+.bank-box{border:1px solid var(--primary);border-radius:var(--radius-md);background:var(--secondary);padding:24px;display:grid;gap:16px;margin-top:18px;}.bank-box .eyebrow{display:flex;align-items:center;gap:8px;}.bank-data{display:grid;gap:10px;margin:0;}.bank-data div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);padding-bottom:8px;font-size:12px;}.bank-data dt{color:var(--muted-foreground);}.bank-data dd{margin:0;font-weight:700;}.bank-number{font-family:var(--font-display);font-size:22px;letter-spacing:1px;}

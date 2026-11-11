@@ -1,3 +1,4 @@
+import { ChangePasswordCard } from '@/components/change-password-card';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
@@ -92,6 +93,7 @@ function Admin() {
  const current = rows.find((r) => r.id === editing);
  return <main className="shell admin-page">
   <div className="page-title"><div className="eyebrow">ADMINISTRACIÓN</div><h1>GESTIÓN DE CLIENTES.</h1><p>Membresías, vencimientos y bajas.</p></div>
+  <ChangePasswordCard/>
   <div className="admin-stats">
    <div className="profile-stat"><span className="category">SOCIOS ACTIVOS / AL CORRIENTE</span><h3>{counts.activos}</h3></div>
    <div className="profile-stat is-warn"><span className="category">POR VENCER (4 DÍAS)</span><h3>{counts.porVencer}</h3></div>

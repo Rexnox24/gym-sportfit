@@ -6,6 +6,7 @@ import { Save, LogOut, ShieldCheck, BellRing, Users } from 'lucide-react';
 import { checkIsAdmin } from '@/lib/admin.functions';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { ChangePasswordCard } from '@/components/change-password-card';
 import { BankTransfer } from '@/components/bank-transfer';
 import { getProfile, updateProfile } from '@/lib/profile.functions';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,6 +30,7 @@ function Portal(){const {data}=useSuspenseQuery(options);const [name,setName]=us
   <section id="renovar" className="renew-box" aria-labelledby="renew-title"><div className="eyebrow">PAGO POR TRANSFERENCIA</div><h2 id="renew-title">{active?'RENUEVA O AMPLÍA TU PLAN.':'ACTIVA TU MEMBRESÍA.'}</h2><p className="section-text">Si ya tienes un plan activo, el nuevo se suma después de tu fecha de vencimiento.</p>
    <div className="renew-options" role="radiogroup" aria-label="Elige tu plan">{portalPlans().map(p=><button type="button" role="radio" aria-checked={planId===p.id} key={p.id} className={'renew-option'+(planId===p.id?' is-active':'')} onClick={()=>setPlanId(p.id as PortalPlanId)}><span>{p.name}</span><small>{p.period}</small><strong>${p.price}</strong></button>)}</div>
    <BankTransfer amount={portalPlans().find(p=>p.id===planId)?.price}/></section>
+  <ChangePasswordCard/>
  </main>;
 }
 function AdminLink(){const fn=useServerFn(checkIsAdmin);const {data}=useQuery({queryKey:['is-admin'],queryFn:()=>fn()});if(!data?.isAdmin)return null;return <div className="mb-6"><Button asChild variant="sport"><Link to="/admin"><Users/>GESTIÓN DE CLIENTES</Link></Button></div>;}

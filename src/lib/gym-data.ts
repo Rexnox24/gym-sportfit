@@ -11,15 +11,16 @@ import legPress from '@/assets/photography/prensa-piernas-piso-uniforme.jpg';
 import squat from '@/assets/photography/sentadilla-guiada-piso-uniforme.jpg';
 import smith from '@/assets/photography/maquina-smith-piso-uniforme.jpg';
 import calves from '@/assets/photography/elevacion-talones-final.jpg';
+import buenFin from '@/assets/promos/buen-fin-2026.jpg.asset.json';
 import heroImg from '@/assets/photography/gym-portada-retocada.jpg';
 export const heroPhoto = heroImg;
 export const rates = [
  {name:'Mensualidad',price:350,period:'Un mes'},
  {name:'Semanal',price:150,period:'Una semana'},
   {name:'Trimestral',price:780,period:'Tres meses'},
-{name:'Promo Anual',price:3700,period:'Doce meses'},
+{name:'Promo Anual',price:3600,period:'Doce meses'},
 ];
-export const promotions = [{title:'Promo Anual',price:3700,period:'12 meses de acceso',image:null as string|null,description:'Un año completo de pesas, cardio y vestidores al mejor costo por mes. Se contrata directamente en recepción con la administración.'}];
+export const promotions = [{title:'Buen Fin Sportfit',price:1700,period:'Del 13 al 17 de noviembre de 2026',image:buenFin.url as string|null,until:'2026-11-17T23:59:59-06:00' as string|undefined,offers:['6 meses por solo $1,700','Membresía anual: de $3,600 a solo $2,900'] as string[]|undefined,description:'Aprovecha el Buen Fin: 6 meses por $1,700 o la membresía anual a solo $2,900. Válido del 13 al 17 de noviembre, contrátala en recepción o por transferencia.'},{title:'Promo Anual',price:3600,period:'12 meses de acceso',image:null as string|null,until:undefined as string|undefined,offers:undefined as string[]|undefined,description:'Un año completo de pesas, cardio y vestidores al mejor costo por mes. Se contrata directamente en recepción con la administración.'}];
 export const openingHours = [
  {days:'Lunes a viernes',sessions:[{label:'Matutino',time:'6:00 a.m. – 1:00 p.m.'},{label:'Vespertino',time:'4:00 p.m. – 10:00 p.m.'}]},
  {days:'Sábados',sessions:[{label:'',time:'8:00 a.m. – 1:00 p.m.'}]},
@@ -44,3 +45,5 @@ const PLACE_ID='ChIJu61WOhD20YUROgrqEE8n6BA';
 export const location={name:'Gym Sport Fit',address:ADDRESS,short:'Eje 1, Lomas de Cartagena',placeId:PLACE_ID,mapsUrl:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Gym Sport Fit')}&query_place_id=${PLACE_ID}`,directionsUrl:`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent('Gym Sport Fit')}&destination_place_id=${PLACE_ID}`,query:`place_id:${PLACE_ID}`};
 export const bankAccount={bank:'BBVA',number:'4152313501221480',formatted:'4152 3135 0122 1480',holder:'Julio Antonio Mayer'};
 export const receiptWhatsApp={number:'525539242569',formatted:'55 3924 2569'};
+
+export const activePromotions=(now=new Date())=>promotions.filter(p=>!p.until||now<=new Date(p.until));

@@ -157,3 +157,20 @@ export const interpretQuery = createServerFn({ method: 'POST' }).middleware([req
   try { return { filter: JSON.parse(text) as SmartFilter, error: null }; }
   catch { return { filter: null, error: 'No entendimos la consulta. Intenta escribirla de otra forma.' }; }
  });
+
+export const listPayments = createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth])
+ .inputValidator((d: unknown) => z.object({ month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/) }).parse(d))
+ .handler(async ({ context, data }) => {
+  await assertAdmin(context);
+  const { monthRange } = await import('./admin-filters');
+  const { start, end } = monthRange(data.month);
+  const { data: pays, error } = await context.supabase.from('payments').select('id,amount,method,plan,created_at,user_id').gte('created_at', start).lt('created_at', end).order('created_at', { ascending: false }).limit(2000);
+  if (error) throw new Error('No pudimos cargar los pagos.');
+  const ids = [...new Set((pays ?? []).map((p: any) => p.user_id))];
+  const names = new Map<string, string>();
+  if (ids.length) { const { data: profs } = await context.supabase.from('profiles').select('id,display_name').in('id', ids); (profs ?? []).forEach((p: any) => names.set(p.id, p.display_name ?? '')); }
+  const rows = (pays ?? []).map((p: any) => ({ id: p.id as string, amount: Number(p.amount), method: p.method as string, plan: p.plan as string, created_at: p.created_at as string, member: names.get(p.user_id) || 'Socio' }));
+  const sum = (f: (r: typeof rows[number]) => boolean) => rows.filter(f).reduce((s, r) => s + r.amount, 0);
+  const total = sum(() => true), cash = sum((r) => r.method === 'efectivo'), transfer = sum((r) => r.method === 'transferencia');
+  return { rows, total, cash, transfer, online: total - cash - transfer };
+ });

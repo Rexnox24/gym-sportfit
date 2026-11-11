@@ -23,3 +23,14 @@ const esc = (v: string) => (/[",\n;]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
 export function toCsv(header: string[], rows: string[][]) {
  return '\uFEFF' + [header, ...rows].map((r) => r.map(esc).join(',')).join('\r\n');
 }
+
+/** Rango UTC de un mes en hora de Ciudad de México (UTC-6, sin horario de verano). month = 'YYYY-MM'. */
+export function monthRange(month: string) {
+ const [y, m] = month.split('-').map(Number) as [number, number];
+ return { start: new Date(Date.UTC(y, m - 1, 1, 6)).toISOString(), end: new Date(Date.UTC(y, m, 1, 6)).toISOString() };
+}
+/** Últimos `count` meses (incluye el actual) en formato 'YYYY-MM', hora de Ciudad de México. */
+export function recentMonths(now = new Date(), count = 12) {
+ const mx = new Date(now.getTime() - 6 * 3600_000);
+ return Array.from({ length: count }, (_, i) => { const d = new Date(Date.UTC(mx.getUTCFullYear(), mx.getUTCMonth() - i, 1)); return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`; });
+}

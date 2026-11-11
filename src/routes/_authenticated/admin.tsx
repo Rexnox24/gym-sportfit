@@ -7,8 +7,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { checkIsAdmin, listMembers, setMembership, deleteMember, updateMember, listLogs, interpretQuery, recordCashPayment } from '@/lib/admin.functions';
-import { matchesSmart, toCsv, type SmartFilter } from '@/lib/admin-filters';
+import { checkIsAdmin, listMembers, setMembership, deleteMember, updateMember, listLogs, interpretQuery, recordCashPayment, listPayments } from '@/lib/admin.functions';
+import { matchesSmart, toCsv, recentMonths, type SmartFilter } from '@/lib/admin-filters';
 import { pageHead } from '@/lib/gym-data';
 import { plans, effectiveDays, computeExpiry, isCourtesy, plusDays, type PlanId } from '@/lib/plans';
 
@@ -64,7 +64,7 @@ function Admin() {
  });
 
  async function run(p: Promise<unknown>, ok: string) {
-  try { await p; toast.success(ok); await qc.invalidateQueries({ queryKey: ['admin-members'] }); await qc.invalidateQueries({ queryKey: ['admin-logs'] }); return true; }
+  try { await p; toast.success(ok); await qc.invalidateQueries({ queryKey: ['admin-members'] }); await qc.invalidateQueries({ queryKey: ['admin-logs'] }); await qc.invalidateQueries({ queryKey: ['admin-payments'] }); return true; }
   catch (e) { toast.error(e instanceof Error ? e.message : 'Algo salió mal'); return false; }
  }
  function addDays(r: (typeof rows)[number], days: number) {
@@ -100,6 +100,7 @@ function Admin() {
    <div className="profile-stat"><span className="category">DESACTIVADOS</span><h3>{counts.desactivados}</h3></div>
    <div className="profile-stat"><span className="category">INGRESOS DEL MES</span><h3>${(list.data?.revenue ?? 0).toLocaleString('es-MX')}</h3><p className="revenue-split"><span>Efectivo (recepción): <strong>${(list.data?.revenueCash ?? 0).toLocaleString('es-MX')}</strong></span><span>Transferencia BBVA: <strong>${(list.data?.revenueTransfer ?? 0).toLocaleString('es-MX')}</strong></span>{(list.data?.revenueOnline ?? 0) > 0 && <span>En línea: <strong>${(list.data?.revenueOnline ?? 0).toLocaleString('es-MX')}</strong></span>}</p></div>
   </div>
+  <PaymentsHistory />
   <form className="admin-ask" onSubmit={askAi}>
    <label className="field admin-search"><span className="sr-only">Pregunta sobre tus socios</span><Sparkles aria-hidden="true" className="size-4 text-primary" /><input placeholder="Pregunta: «vencidos hace más de 15 días»" value={ask} onChange={(e) => setAsk(e.target.value)} maxLength={300} /></label>
    <Button type="submit" variant="sport" disabled={asking}>{asking ? 'PENSANDO…' : 'PREGUNTAR'}</Button>
@@ -239,4 +240,36 @@ function ConfirmDelete({ member, onCancel, onConfirm }: { member: Member; onCanc
 			<Button type="submit" variant="destructive" size="lg">SÍ, DAR DE BAJA</Button>
 		</div>
 	</form>;
+}
+
+const methodLabel: Record<string, string> = { efectivo: 'Efectivo (recepción)', transferencia: 'Transferencia BBVA', paypal: 'PayPal', tarjeta: 'Tarjeta' };
+const monthName = (m: string) => { const [y, mm] = m.split('-').map(Number) as [number, number]; const t = new Date(Date.UTC(y, mm - 1, 15)).toLocaleDateString('es-MX', { month: 'long', year: 'numeric', timeZone: 'UTC' }); return t.charAt(0).toUpperCase() + t.slice(1); };
+function PaymentsHistory() {
+ const months = useMemo(() => recentMonths(), []);
+ const [month, setMonth] = useState(months[0]!);
+ const fn = useServerFn(listPayments);
+ const q = useQuery({ queryKey: ['admin-payments', month], queryFn: () => fn({ data: { month } }) });
+ const money = (n: number) => `$${n.toLocaleString('es-MX')}`;
+ function download() {
+  if (!q.data) return;
+  const csv = toCsv(['Fecha', 'Socio', 'Plan', 'Monto', 'Método'], q.data.rows.map((r) => [new Date(r.created_at).toLocaleString('es-MX', { timeZone: 'America/Mexico_City' }), r.member, r.plan, String(r.amount), methodLabel[r.method] ?? r.method]));
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = `cobros-sportfit-${month}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
+ }
+ return <section className="payments-history" aria-labelledby="ph-title">
+  <div className="payments-history-top">
+   <div><div className="eyebrow">HISTORIAL DE COBROS</div><h2 id="ph-title">{monthName(month)}</h2></div>
+   <div className="payments-history-tools">
+    <label className="field"><span className="sr-only">Mes</span><select value={month} onChange={(e) => setMonth(e.target.value)}>{months.map((m) => <option key={m} value={m}>{monthName(m)}</option>)}</select></label>
+    <Button variant="outline" onClick={download} disabled={!q.data?.rows.length}><Download />DESCARGAR CORTE</Button>
+   </div>
+  </div>
+  {q.isLoading ? <p>Cargando pagos…</p> : q.error ? <p>No pudimos cargar los pagos.</p> : q.data && <>
+   <p className="revenue-split"><span>Total: <strong className="text-primary">{money(q.data.total)}</strong></span><span>Efectivo: <strong>{money(q.data.cash)}</strong></span><span>Transferencia BBVA: <strong>{money(q.data.transfer)}</strong></span>{q.data.online > 0 && <span>En línea: <strong>{money(q.data.online)}</strong></span>}</p>
+   {q.data.rows.length === 0 ? <p>No hay pagos registrados en este mes.</p> :
+   <div className="payments-table-wrap"><table className="payments-table"><thead><tr><th>Fecha</th><th>Socio</th><th>Plan</th><th>Monto</th><th>Método</th></tr></thead><tbody>
+    {q.data.rows.map((r) => <tr key={r.id}><td>{new Date(r.created_at).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'America/Mexico_City' })}</td><td>{r.member}</td><td>{r.plan}</td><td className="text-primary">{money(r.amount)}</td><td>{methodLabel[r.method] ?? r.method}</td></tr>)}
+   </tbody></table></div>}
+  </>}
+ </section>;
 }

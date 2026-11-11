@@ -25,3 +25,13 @@ describe('csv', () => {
 describe('csv teléfono', () => {
  it('incluye la columna Teléfono', () => expect(toCsv(['Nombre', 'Teléfono'], [['Ana', '55 1234']])).toContain('Teléfono\r\nAna,55 1234'));
 });
+
+import { monthRange as mr, recentMonths as rm } from '@/lib/admin-filters';
+describe('historial por mes', () => {
+ it('noviembre 2026 empieza el 1 a medianoche de CDMX', () => {
+  expect(mr('2026-11')).toEqual({ start: '2026-11-01T06:00:00.000Z', end: '2026-12-01T06:00:00.000Z' });
+ });
+ it('el 1 de dic a las 3am UTC todavía es noviembre en CDMX', () => {
+  expect(rm(new Date('2026-12-01T03:00:00Z'), 2)).toEqual(['2026-11', '2026-10']);
+ });
+});

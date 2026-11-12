@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://gym-sportfit.lovable.app/sitemap.xml
+Sitemap: https://gymsportfit.com.mx/sitemap.xml

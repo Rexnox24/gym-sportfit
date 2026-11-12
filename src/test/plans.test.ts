@@ -29,3 +29,10 @@ describe('portal, tarjeta y registro', () => {
 describe('promociones vigentes', () => {
  it('ya no existe la promo de fin de año', () => expect(plans.map(p => p.id)).not.toContain('promo-fin-2026'));
 });
+
+import { products as _products, computeExpiry as _ce, plans as _plans } from '@/lib/plans';
+describe('productos y Buen Fin', () => {
+ it('agua cuesta $10 y pre entreno $30', () => { expect(_products.map(p => p.price)).toEqual([10, 30]); });
+ it('Buen Fin 6 meses cuesta $1,700 y anual $2,900', () => { expect(_plans.find(p => p.id === 'bf-6meses')?.price).toBe(1700); expect(_plans.find(p => p.id === 'bf-anual')?.price).toBe(2900); });
+ it('Buen Fin 6 meses suma 6 meses', () => { const now = new Date('2026-11-14T12:00:00Z'); expect(new Date(_ce('bf-6meses', null, now)!).getMonth()).toBe(4); });
+});

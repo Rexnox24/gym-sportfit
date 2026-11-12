@@ -3,15 +3,15 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { useMemo, useState, type FormEvent } from 'react';
-import { Search, CalendarPlus, Trash2, Pencil, History, Download, Sparkles, X, Power, Banknote, Phone } from 'lucide-react';
+import { Search, CalendarPlus, Trash2, Pencil, History, Download, Sparkles, X, Power, Banknote, Phone, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { checkIsAdmin, listMembers, setMembership, deleteMember, updateMember, listLogs, interpretQuery, recordCashPayment, listPayments } from '@/lib/admin.functions';
+import { checkIsAdmin, listMembers, setMembership, deleteMember, updateMember, listLogs, interpretQuery, recordCashPayment, listPayments, recordProductSale, deletePayment } from '@/lib/admin.functions';
 import { matchesSmart, toCsv, recentMonths, type SmartFilter } from '@/lib/admin-filters';
 import { pageHead } from '@/lib/gym-data';
-import { plans, effectiveDays, computeExpiry, isCourtesy, plusDays, type PlanId } from '@/lib/plans';
+import { products, plans, effectiveDays, computeExpiry, isCourtesy, isPlanAvailable, plusDays, type PlanId } from '@/lib/plans';
 
 export const Route = createFileRoute('/_authenticated/admin')({
  staticData: { sitemap: false },
@@ -102,6 +102,7 @@ function Admin() {
    <div className="profile-stat"><span className="category">DESACTIVADOS</span><h3>{counts.desactivados}</h3></div>
    <div className="profile-stat"><span className="category">INGRESOS DEL MES</span><h3>${(list.data?.revenue ?? 0).toLocaleString('es-MX')}</h3><p className="revenue-split"><span>Efectivo (recepción): <strong>${(list.data?.revenueCash ?? 0).toLocaleString('es-MX')}</strong></span><span>Transferencia BBVA: <strong>${(list.data?.revenueTransfer ?? 0).toLocaleString('es-MX')}</strong></span>{(list.data?.revenueOnline ?? 0) > 0 && <span>En línea: <strong>${(list.data?.revenueOnline ?? 0).toLocaleString('es-MX')}</strong></span>}</p></div>
   </div>
+  <ProductSale />
   <PaymentsHistory />
   <form className="admin-ask" onSubmit={askAi}>
    <label className="field admin-search"><span className="sr-only">Pregunta sobre tus socios</span><Sparkles aria-hidden="true" className="size-4 text-primary" /><input placeholder="Pregunta: «vencidos hace más de 15 días»" value={ask} onChange={(e) => setAsk(e.target.value)} maxLength={300} /></label>
@@ -180,7 +181,7 @@ function EditForm({ member, onDone, run }: { member: Member; onDone: () => void;
 
 function CashForm({ member, onDone, run }: { member: Member; onDone: () => void; run: (p: Promise<unknown>, ok: string) => Promise<boolean> }) {
  const fn = useServerFn(recordCashPayment);
- const cashPlans = plans.filter((p) => !p.ownerOnly);
+ const cashPlans = plans.filter((p) => !p.ownerOnly && isPlanAvailable(p));
  const [planId, setPlanId] = useState<PlanId>('mensualidad');
  const [method, setMethod] = useState<'efectivo' | 'transferencia'>('efectivo');
  const [busy, setBusy] = useState(false);
@@ -252,6 +253,10 @@ function PaymentsHistory() {
  const fn = useServerFn(listPayments);
  const q = useQuery({ queryKey: ['admin-payments', month], queryFn: () => fn({ data: { month } }) });
  const money = (n: number) => `$${n.toLocaleString('es-MX')}`;
+ const qc = useQueryClient();
+ const delFn = useServerFn(deletePayment);
+ const [del, setDel] = useState<{ id: string; member: string; plan: string; amount: number } | null>(null);
+ async function confirmDel() { if (!del) return; try { await delFn({ data: { paymentId: del.id } }); toast.success('Pago borrado'); setDel(null); await qc.invalidateQueries({ queryKey: ['admin-payments'] }); await qc.invalidateQueries({ queryKey: ['admin-members'] }); } catch (e) { toast.error(e instanceof Error ? e.message : 'No pudimos borrar el pago'); } }
  function download() {
   if (!q.data) return;
   const csv = toCsv(['Fecha', 'Socio', 'Plan', 'Monto', 'Método'], q.data.rows.map((r) => [new Date(r.created_at).toLocaleString('es-MX', { timeZone: 'America/Mexico_City' }), r.member, r.plan, String(r.amount), methodLabel[r.method] ?? r.method]));
@@ -269,9 +274,45 @@ function PaymentsHistory() {
   {q.isLoading ? <p>Cargando pagos…</p> : q.error ? <p>No pudimos cargar los pagos.</p> : q.data && <>
    <p className="revenue-split"><span>Total: <strong className="text-primary">{money(q.data.total)}</strong></span><span>Efectivo: <strong>{money(q.data.cash)}</strong></span><span>Transferencia BBVA: <strong>{money(q.data.transfer)}</strong></span>{q.data.online > 0 && <span>En línea: <strong>{money(q.data.online)}</strong></span>}</p>
    {q.data.rows.length === 0 ? <p>No hay pagos registrados en este mes.</p> :
-   <div className="payments-table-wrap"><table className="payments-table"><thead><tr><th>Fecha</th><th>Socio</th><th>Plan</th><th>Monto</th><th>Método</th></tr></thead><tbody>
-    {q.data.rows.map((r) => <tr key={r.id}><td>{new Date(r.created_at).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'America/Mexico_City' })}</td><td>{r.member}</td><td>{r.plan}</td><td className="text-primary">{money(r.amount)}</td><td>{methodLabel[r.method] ?? r.method}</td></tr>)}
+   <div className="payments-table-wrap"><table className="payments-table"><thead><tr><th>Fecha</th><th>Socio</th><th>Plan</th><th>Monto</th><th>Método</th><th><span className="sr-only">Borrar</span></th></tr></thead><tbody>
+    {q.data.rows.map((r) => <tr key={r.id}><td>{new Date(r.created_at).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'America/Mexico_City' })}</td><td>{r.member}</td><td>{r.plan}</td><td className="text-primary">{money(r.amount)}</td><td>{methodLabel[r.method] ?? r.method}</td><td><Button size="icon" variant="ghost" aria-label={`Borrar pago de ${r.member}`} onClick={() => setDel(r)}><Trash2 /></Button></td></tr>)}
    </tbody></table></div>}
   </>}
+  <Dialog open={!!del} onOpenChange={(o) => !o && setDel(null)}><DialogContent>{del && <div className="grid gap-4"><DialogHeader><DialogTitle>BORRAR PAGO</DialogTitle><DialogDescription>{del.member} · {del.plan} · {money(del.amount)}</DialogDescription></DialogHeader><p className="section-text">Se quitará de Ingresos del mes y del historial. No cambia la fecha de vencimiento del socio; ajústala con «Editar» si hace falta.</p><div className="admin-confirm-actions"><Button variant="outline" size="lg" onClick={() => setDel(null)}>CANCELAR</Button><Button variant="destructive" size="lg" onClick={confirmDel}>SÍ, BORRAR</Button></div></div>}</DialogContent></Dialog>
+ </section>;
+}
+
+function ProductSale() {
+ const fn = useServerFn(recordProductSale);
+ const qc = useQueryClient();
+ const [product, setProduct] = useState<'agua' | 'preentreno' | 'otro'>('agua');
+ const [name, setName] = useState('');
+ const [price, setPrice] = useState('');
+ const [qty, setQty] = useState(1);
+ const [method, setMethod] = useState<'efectivo' | 'transferencia'>('efectivo');
+ const [busy, setBusy] = useState(false);
+ const fixed = products.find((p) => p.id === product);
+ const total = (fixed ? fixed.price : Number(price) || 0) * qty;
+ async function save(e: FormEvent) {
+  e.preventDefault(); setBusy(true);
+  try {
+   await fn({ data: { product, method, qty, ...(product === 'otro' ? { name, price: Number(price) } : {}) } });
+   toast.success(`Venta de $${total.toLocaleString('es-MX')} registrada`);
+   setQty(1); setName(''); setPrice('');
+   await qc.invalidateQueries({ queryKey: ['admin-members'] }); await qc.invalidateQueries({ queryKey: ['admin-payments'] });
+  } catch (err) { toast.error(err instanceof Error ? err.message : 'No pudimos registrar la venta'); }
+  finally { setBusy(false); }
+ }
+ return <section className="renew-box mb-8" aria-labelledby="sale-title">
+  <div className="eyebrow">MOSTRADOR</div><h2 id="sale-title">VENTA DE PRODUCTOS.</h2>
+  <form className="form-stack" onSubmit={save}>
+   <div className="renew-options" role="radiogroup" aria-label="Producto">
+    {[...products.map((p) => ({ id: p.id, name: p.name, price: `$${p.price}` })), { id: 'otro' as const, name: 'Otro', price: 'Tú pones el precio' }].map((p) => <button type="button" role="radio" aria-checked={product === p.id} key={p.id} className={'renew-option' + (product === p.id ? ' is-active' : '')} onClick={() => setProduct(p.id)}><span>{p.name}</span><strong>{p.price}</strong></button>)}
+   </div>
+   {product === 'otro' && <><label className="field">Producto<input required maxLength={60} value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. Proteína" /></label><label className="field">Precio (MXN)<input required type="number" min={1} step="0.01" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} /></label></>}
+   <label className="field">Cantidad<input type="number" min={1} max={100} value={qty} onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))} /></label>
+   <label className="field">Forma de pago<select value={method} onChange={(e) => setMethod(e.target.value as 'efectivo' | 'transferencia')}><option value="efectivo">Efectivo</option><option value="transferencia">Depósito / Transferencia BBVA</option></select></label>
+   <Button type="submit" variant="sport" size="lg" disabled={busy || total <= 0}><ShoppingCart />{busy ? 'REGISTRANDO…' : `REGISTRAR VENTA $${total.toLocaleString('es-MX')}`}</Button>
+  </form>
  </section>;
 }

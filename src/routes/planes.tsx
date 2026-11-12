@@ -17,13 +17,13 @@ function Plans() {
  return <main className="shell">
   <div className="page-title"><div className="eyebrow">INVIERTE EN TI</div><h1>ELIGE TU <span className="text-primary">SIGUIENTE NIVEL.</span></h1><p>Paga en línea y empieza a entrenar hoy mismo.</p><LocationLine/></div>
   <section className="rates-section" aria-label="Planes y precios">
-   <div className="plans-grid">{available.map(plan => <article key={plan.id} className={'plan-card' + (plan.highlight ? ' is-featured' : '') + (plan.id === 'anual' ? ' is-promo' : '')}>
+   <div className="plans-grid">{available.map(plan => <article key={plan.id} className={'plan-card' + (plan.highlight ? ' is-featured' : '') + (plan.id === 'anual' || plan.id.startsWith('bf-') ? ' is-promo' : '')}>
     {plan.highlight && <span className="plan-badge">{plan.highlight}</span>}
     <span className="category">{plan.period.toUpperCase()}</span>
     <h2>{plan.name}</h2>
     <p className="plan-price"><span>$</span>{plan.price.toLocaleString('es-MX')}<small>MXN</small></p>
     <ul className="plan-features">{plan.features.map(f => <li key={f}><Check aria-hidden="true" />{f}</li>)}</ul>
-    <div className="plan-pay">{plan.onlineCheckout ? <p className="plan-onsite">Paga por transferencia BBVA o en recepción</p> : <p className="plan-onsite">{plan.id === 'visita' ? 'Paga en efectivo en el gimnasio con el dueño o encargado' : 'Contrátala directamente en recepción'}</p>}</div>
+    <div className="plan-pay">{plan.onlineCheckout ? <p className="plan-onsite">Paga por transferencia BBVA o en recepción</p> : <p className="plan-onsite">{plan.id === 'visita' ? 'Paga en efectivo en el gimnasio con el dueño o encargado' : 'Paga por transferencia BBVA o en efectivo'}</p>}</div>
    </article>)}</div>
    <BankTransfer />
    <div className="payment-strip"><p><Zap aria-hidden="true" />Transferencia BBVA o efectivo en recepción.</p><p><ShieldCheck aria-hidden="true" />Envía tu comprobante por WhatsApp y activamos tu membresía.</p><Button asChild variant="link"><Link to="/promociones">VER PROMOCIONES <ArrowUpRight /></Link></Button></div>

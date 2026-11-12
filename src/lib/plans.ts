@@ -1,5 +1,9 @@
 // Planes que se pueden pagar en línea. El servidor usa esta lista para fijar el importe.
-export type PlanId = 'cortesia' | 'visita' | 'semanal' | 'mensualidad' | 'trimestral' | 'anual';
+/** Productos de mostrador con precio fijo. */
+export const products = [{ id: 'agua', name: 'Agua', price: 10 }, { id: 'preentreno', name: 'Pre entreno', price: 30 }] as const;
+export const PRODUCT_PREFIX = 'Producto: ';
+export const isPhone = (s: string) => s.replace(/\D/g, '').replace(/^52/, '').length === 10;
+export type PlanId = 'cortesia' | 'visita' | 'semanal' | 'mensualidad' | 'trimestral' | 'anual' | 'bf-6meses' | 'bf-anual';
 
 export interface PlanOption {
  id: PlanId;
@@ -23,7 +27,9 @@ export const plans: PlanOption[] = [
  { id: 'semanal', name: 'Semanal', price: 150, period: '7 días', onlineCheckout: true, features: ['Acceso durante 7 días', 'Pesas y cardio', 'Vestidores y sanitario'] },
  { id: 'mensualidad', name: 'Mensualidad', price: 350, period: '1 mes', highlight: 'MÁS POPULAR', onlineCheckout: true, features: ['Acceso durante 1 mes', 'Pesas y cardio', 'Vestidores y sanitario'] },
  { id: 'trimestral', name: 'Trimestral', price: 780, period: '3 meses', onlineCheckout: true, features: ['Acceso durante 3 meses', 'Pesas y cardio', 'Vestidores y sanitario'] },
- { id: 'anual', name: 'Promo Anual', price: 3600, period: '12 meses', highlight: 'MEJOR PRECIO', onlineCheckout: false, features: ['12 meses de acceso', 'Pesas, cardio y vestidores', 'El mejor costo por mes', 'Contrátala en recepción'] },
+ { id: 'bf-6meses', name: 'Buen Fin 6 meses', price: 1700, period: '6 meses', highlight: 'BUEN FIN', onlineCheckout: true, availableUntil: '2026-11-17T23:59:59-06:00', features: ['6 meses de acceso', 'Pesas, cardio y vestidores', 'Válido del 13 al 17 de noviembre'] },
+ { id: 'bf-anual', name: 'Buen Fin Anual', price: 2900, period: '12 meses', highlight: 'BUEN FIN', onlineCheckout: true, availableUntil: '2026-11-17T23:59:59-06:00', features: ['12 meses de acceso', 'De $3,600 a $2,900', 'Válido del 13 al 17 de noviembre'] },
+ { id: 'anual', name: 'Promo Anual', price: 3600, period: '12 meses', highlight: 'MEJOR PRECIO', onlineCheckout: false, features: ['12 meses de acceso', 'Pesas, cardio y vestidores', 'El mejor costo por mes', 'Paga por transferencia o en efectivo'] },
 ];
 
 export const onlinePlans = (now = new Date()) => plans.filter(p => p.onlineCheckout && isPlanAvailable(p, now));
@@ -40,7 +46,8 @@ export function computeExpiry(planId: PlanId, currentExpiry: string | null, now 
  if (planId === 'visita') { d.setHours(23, 59, 59, 0); if (d <= start) d.setDate(d.getDate() + 1); }
  else if (planId === 'semanal') d.setDate(d.getDate() + 7);
  else if (planId === 'mensualidad') d.setMonth(d.getMonth() + 1);
- else if (planId === 'anual') d.setMonth(d.getMonth() + 12);
+ else if (planId === 'bf-6meses') d.setMonth(d.getMonth() + 6);
+ else if (planId === 'anual' || planId === 'bf-anual') d.setMonth(d.getMonth() + 12);
  else d.setMonth(d.getMonth() + 3);
  return d.toISOString();
 }
@@ -68,5 +75,5 @@ export function effectiveDays(membership: string | null, expiry: string | null, 
 
 /** Planes que el socio puede elegir en su portal: los de línea + la Promo Anual. */
 export const portalPlans = (now = new Date()) => [...onlinePlans(now), ...plans.filter(p => p.id === 'anual')];
-export type PortalPlanId = 'semanal' | 'mensualidad' | 'trimestral' | 'anual';
-export const PORTAL_PLAN_IDS = ['semanal', 'mensualidad', 'trimestral', 'anual'] as const;
+export type PortalPlanId = PlanId;
+export const PORTAL_PLAN_IDS = ['semanal', 'mensualidad', 'trimestral', 'anual', 'bf-6meses', 'bf-anual'] as const;

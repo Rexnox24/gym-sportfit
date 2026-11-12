@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { authErrorMessage } from '@/lib/auth-messages';
 
-export function ChangePasswordCard() {
+export function ChangePasswordCard({ hasPassword = true }: { hasPassword?: boolean }) {
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -21,7 +21,15 @@ export function ChangePasswordCard() {
     setBusy(true);
     const { error } = await supabase.auth.updateUser({ password });
     setBusy(false);
-    if (error) return setError(authErrorMessage(error));
+    if (error) {
+      const m = (error.message || '').toLowerCase();
+      if (m.includes('reauth') || m.includes('nonce') || m.includes('recent')) {
+        const { data } = await supabase.auth.getUser();
+        if (data.user?.email) await supabase.auth.resetPasswordForEmail(data.user.email, { redirectTo: window.location.origin + '/reset-password' });
+        return setError('Por seguridad te enviamos un enlace a tu correo para crear tu contraseña.');
+      }
+      return setError(authErrorMessage(error));
+    }
     setPassword(''); setConfirm(''); setOpen(false);
     toast.success('Contraseña actualizada con éxito');
   }
@@ -29,9 +37,10 @@ export function ChangePasswordCard() {
   return (
     <section className="renew-box mb-8" aria-labelledby="pw-title">
       <div className="eyebrow">SEGURIDAD</div>
-      <h2 id="pw-title">CAMBIAR CONTRASEÑA.</h2>
+      <h2 id="pw-title">{hasPassword ? 'CAMBIAR CONTRASEÑA.' : 'CREA TU CONTRASEÑA.'}</h2>
+      {!hasPassword && <p className="section-text">Entraste con Google. Crea una contraseña si también quieres entrar con tu correo.</p>}
       {!open ? (
-        <Button type="button" variant="outline" onClick={() => setOpen(true)}><KeyRound />Cambiar mi contraseña</Button>
+        <Button type="button" variant="outline" onClick={() => setOpen(true)}><KeyRound />{hasPassword ? 'Cambiar mi contraseña' : 'Crear contraseña'}</Button>
       ) : (
         <form className="form-stack" onSubmit={submit}>
           <label className="field">Nueva contraseña

@@ -74,7 +74,7 @@ export const updateMember = createServerFn({ method: 'POST' }).middleware([requi
 
 /** Pago en efectivo en recepción: registra el ingreso y extiende la membresía. */
 export const recordCashPayment = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
- .inputValidator(z.object({ userId: z.string().uuid(), planId: z.enum(['visita', 'semanal', 'mensualidad', 'trimestral', 'anual']), method: z.enum(['efectivo', 'transferencia']).default('efectivo') }))
+ .inputValidator(z.object({ userId: z.string().uuid(), planId: z.enum(['visita', 'semanal', 'mensualidad', 'trimestral', 'anual', 'bf-6meses', 'bf-anual']), method: z.enum(['efectivo', 'transferencia']).default('efectivo') }))
  .handler(async ({ data, context }) => {
   await assertAdmin(context);
   const { plans, computeExpiry } = await import('./plans');
@@ -169,8 +169,35 @@ export const listPayments = createServerFn({ method: 'GET' }).middleware([requir
   const ids = [...new Set((pays ?? []).map((p: any) => p.user_id))];
   const names = new Map<string, string>();
   if (ids.length) { const { data: profs } = await context.supabase.from('profiles').select('id,display_name').in('id', ids); (profs ?? []).forEach((p: any) => names.set(p.id, p.display_name ?? '')); }
-  const rows = (pays ?? []).map((p: any) => ({ id: p.id as string, amount: Number(p.amount), method: p.method as string, plan: p.plan as string, created_at: p.created_at as string, member: names.get(p.user_id) || 'Socio' }));
+  const rows = (pays ?? []).map((p: any) => ({ id: p.id as string, amount: Number(p.amount), method: p.method as string, plan: p.plan as string, created_at: p.created_at as string, member: String(p.plan).startsWith('Producto: ') ? 'Mostrador' : (names.get(p.user_id) || 'Socio') }));
   const sum = (f: (r: typeof rows[number]) => boolean) => rows.filter(f).reduce((s, r) => s + r.amount, 0);
   const total = sum(() => true), cash = sum((r) => r.method === 'efectivo'), transfer = sum((r) => r.method === 'transferencia');
   return { rows, total, cash, transfer, online: total - cash - transfer };
+ });
+
+/** Venta de producto en mostrador: se guarda como cobro para sumar a ingresos. */
+export const recordProductSale = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
+ .inputValidator(z.object({ product: z.enum(['agua', 'preentreno', 'otro']), name: z.string().trim().max(60).optional(), price: z.number().positive().max(100000).optional(), qty: z.number().int().min(1).max(100).default(1), method: z.enum(['efectivo', 'transferencia']) }))
+ .handler(async ({ data, context }) => {
+  await assertAdmin(context);
+  const { products, PRODUCT_PREFIX } = await import('./plans');
+  const fixed = products.find((p) => p.id === data.product);
+  const name = fixed ? fixed.name : (data.name || '');
+  const price = fixed ? fixed.price : (data.price ?? 0);
+  if (!name || price <= 0) throw new Error('Escribe el nombre y el precio del producto.');
+  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+  const { error } = await supabaseAdmin.from('payments').insert({ user_id: context.userId, plan: `${PRODUCT_PREFIX}${name}${data.qty > 1 ? ` x${data.qty}` : ''}`, amount: price * data.qty, currency: 'MXN', paypal_order_id: `producto-${crypto.randomUUID()}`, status: 'completed', method: data.method });
+  if (error) throw new Error('No pudimos registrar la venta.');
+  return { ok: true, amount: price * data.qty };
+ });
+
+/** Borra un cobro registrado por error; deja de sumar en ingresos. */
+export const deletePayment = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
+ .inputValidator(z.object({ paymentId: z.string().uuid() }))
+ .handler(async ({ data, context }) => {
+  await assertAdmin(context);
+  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+  const { error } = await supabaseAdmin.from('payments').delete().eq('id', data.paymentId);
+  if (error) throw new Error('No pudimos borrar el pago.');
+  return { ok: true };
  });

@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ChangePasswordCard } from '@/components/change-password-card';
 import { BankTransfer } from '@/components/bank-transfer';
-import { getProfile, updateProfile } from '@/lib/profile.functions';
+import { getProfile, updateProfile, updatePhone } from '@/lib/profile.functions';
 import { supabase } from '@/integrations/supabase/client';
 import { pageHead } from '@/lib/gym-data';
 import { portalPlans, effectiveDays, isCourtesy, type PortalPlanId } from '@/lib/plans';
@@ -22,6 +22,7 @@ function Portal(){const {data}=useSuspenseQuery(options);const [name,setName]=us
  const active=days!==null&&days>=0;
  const status=active?'Al día':days!==null?'Vencido':'Sin pago registrado';
  const alert=days===null?null:days<0?{tone:'is-expired',text:`Tu membresía venció el ${fmt(data.membership_expires_at!)}. Renueva para seguir entrenando.`}:days===0?{tone:'is-today',text:'Tu membresía vence HOY. Renuévala para no perder tu acceso.'}:days<=3?{tone:'is-soon',text:`Tu membresía vence en ${days} ${days===1?'día':'días'} (${fmt(data.membership_expires_at!)}).`}:null;
+ if(!data.phone) return <PhoneGate/>;
  return <main className="shell"><div className="page-title"><div className="eyebrow">PORTAL DE MIEMBROS</div><h1>HOLA, {data.display_name.split(' ')[0]||'SPORTFIT'}.</h1><p>Tu camino. Tu cuenta.</p></div>
   <AdminLink/>
   {alert&&<div role="alert" className={'expiry-alert '+alert.tone}><BellRing aria-hidden="true"/><p>{alert.text}</p><a href="#renovar" className="expiry-link">RENOVAR AHORA</a></div>}
@@ -30,7 +31,10 @@ function Portal(){const {data}=useSuspenseQuery(options);const [name,setName]=us
   <section id="renovar" className="renew-box" aria-labelledby="renew-title"><div className="eyebrow">PAGO POR TRANSFERENCIA</div><h2 id="renew-title">{active?'RENUEVA O AMPLÍA TU PLAN.':'ACTIVA TU MEMBRESÍA.'}</h2><p className="section-text">Si ya tienes un plan activo, el nuevo se suma después de tu fecha de vencimiento.</p>
    <div className="renew-options" role="radiogroup" aria-label="Elige tu plan">{portalPlans().map(p=><button type="button" role="radio" aria-checked={planId===p.id} key={p.id} className={'renew-option'+(planId===p.id?' is-active':'')} onClick={()=>setPlanId(p.id as PortalPlanId)}><span>{p.name}</span><small>{p.period}</small><strong>${p.price}</strong></button>)}</div>
    <BankTransfer amount={portalPlans().find(p=>p.id===planId)?.price}/></section>
-  <ChangePasswordCard/>
+  <ChangePasswordCard hasPassword={data.hasPassword}/>
  </main>;
 }
 function AdminLink(){const fn=useServerFn(checkIsAdmin);const {data}=useQuery({queryKey:['is-admin'],queryFn:()=>fn()});if(!data?.isAdmin)return null;return <div className="mb-6"><Button asChild variant="sport"><Link to="/admin"><Users/>GESTIÓN DE CLIENTES</Link></Button></div>;}
+function PhoneGate(){const [phone,setPhone]=useState('');const [busy,setBusy]=useState(false);const [error,setError]=useState('');const client=useQueryClient();
+ async function save(e:FormEvent){e.preventDefault();setError('');if(phone.replace(/\D/g,'').replace(/^52/,'').length!==10)return setError('Escribe tu teléfono de 10 dígitos.');setBusy(true);try{await updatePhone({data:{phone}});await client.invalidateQueries({queryKey:['member-profile']});toast.success('Teléfono guardado');}catch(err){setError(err instanceof Error?err.message:'No pudimos guardar tu teléfono');}finally{setBusy(false);}}
+ return <main className="shell section"><div className="page-title"><div className="eyebrow">UN ÚLTIMO PASO</div><h1>TU TELÉFONO.</h1><p>Lo necesitamos para avisarte cuando tu membresía esté por vencer.</p></div><form className="form-stack max-w-md" onSubmit={save}><label className="field">Teléfono / WhatsApp (10 dígitos)<input type="tel" required inputMode="tel" autoComplete="tel" maxLength={20} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Ej. 55 1234 5678"/></label>{error&&<p role="alert" className="text-destructive">{error}</p>}<Button type="submit" variant="sport" size="xl" disabled={busy}>{busy?'Guardando…':'GUARDAR Y CONTINUAR'}</Button></form></main>;}
